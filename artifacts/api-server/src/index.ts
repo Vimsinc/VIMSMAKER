@@ -1,4 +1,4 @@
-import app from "./app";
+import app, { setupViteDevMiddleware, setupStaticServing } from "./app";
 import { logger } from "./lib/logger";
 
 const rawPort = process.env["PORT"];
@@ -15,11 +15,31 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-app.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
+const isDev = process.env.NODE_ENV !== "production";
+
+async function start() {
+  if (isDev) {
+    try {
+      await setupViteDevMiddleware(app);
+      logger.info("Vite dev middleware attached");
+    } catch (err) {
+      logger.warn({ err }, "Vite dev middleware failed, trying static serving");
+      await setupStaticServing(app);
+    }
+  } else {
+    await setupStaticServing(app);
   }
 
-  logger.info({ port }, "Server listening");
+  app.listen(port, (err) => {
+    if (err) {
+      logger.error({ err }, "Error listening on port");
+      process.exit(1);
+    }
+    logger.info({ port }, "Server listening");
+  });
+}
+
+start().catch((err) => {
+  logger.error({ err }, "Fatal startup error");
+  process.exit(1);
 });

@@ -3,20 +3,33 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: SANOVIM — Marketing Médico com IA API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: content
+    description: AI content generation
+  - name: images
+    description: Image generation and editing
+  - name: metrics
+    description: Instagram metrics
+  - name: publishing
+    description: Instagram publishing and scheduling
+  - name: video
+    description: Video processing
+  - name: market
+    description: Market predictions and trends
+  - name: auth
+    description: Authentication
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +37,486 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Auth ──────────────────────────────────────────────────────────────
+  /auth/session:
+    get:
+      operationId: getSession
+      tags: [auth]
+      summary: Get current user session
+      responses:
+        "200":
+          description: Session info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionInfo"
+
+  # ── Content Generation ────────────────────────────────────────────────
+  /content/generate-post:
+    post:
+      operationId: generatePost
+      tags: [content]
+      summary: Generate Instagram post caption with Claude AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneratePostRequest"
+      responses:
+        "200":
+          description: Generated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedContent"
+
+  /content/generate-reels-script:
+    post:
+      operationId: generateReelsScript
+      tags: [content]
+      summary: Generate Reels script (30-60s)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateReelsScriptRequest"
+      responses:
+        "200":
+          description: Generated script
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedContent"
+
+  /content/trends:
+    get:
+      operationId: getTrends
+      tags: [content]
+      summary: Top 5 trends in medical niche via Serper
+      parameters:
+        - name: account
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/AccountName"
+        - name: specialty
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Medical trends
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrendsResponse"
+
+  /content/innovations:
+    get:
+      operationId: getInnovations
+      tags: [content]
+      summary: Latest specialty innovations and news
+      parameters:
+        - name: specialty
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Innovations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InnovationsResponse"
+
+  /content/history:
+    get:
+      operationId: getContentHistory
+      tags: [content]
+      summary: Generated content history
+      parameters:
+        - name: account
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AccountName"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Content history list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContentHistoryItem"
+
+  # ── Images ────────────────────────────────────────────────────────────
+  /images/generate:
+    post:
+      operationId: generateImage
+      tags: [images]
+      summary: Generate image from text prompt via Runware
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateImageRequest"
+      responses:
+        "200":
+          description: Generated image URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedImage"
+
+  /images/create-card:
+    post:
+      operationId: createProfessionalCard
+      tags: [images]
+      summary: Create professional medical card (1080x1350)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CreateCardRequest"
+      responses:
+        "200":
+          description: Card image URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedImage"
+
+  /images/history:
+    get:
+      operationId: getImageHistory
+      tags: [images]
+      summary: Generated images history
+      parameters:
+        - name: account
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AccountName"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Images history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ImageHistoryItem"
+
+  # ── Metrics ───────────────────────────────────────────────────────────
+  /metrics/overview:
+    get:
+      operationId: getMetricsOverview
+      tags: [metrics]
+      summary: Overview metrics for all 3 accounts
+      responses:
+        "200":
+          description: All accounts metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsOverview"
+
+  /metrics/account/{account}:
+    get:
+      operationId: getAccountMetrics
+      tags: [metrics]
+      summary: Detailed metrics for a single account
+      parameters:
+        - name: account
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AccountName"
+      responses:
+        "200":
+          description: Account metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountMetrics"
+
+  /metrics/top-posts/{account}:
+    get:
+      operationId: getTopPosts
+      tags: [metrics]
+      summary: Top 5 posts by engagement for an account
+      parameters:
+        - name: account
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AccountName"
+      responses:
+        "200":
+          description: Top posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InstagramPost"
+
+  /metrics/best-time/{account}:
+    get:
+      operationId: getBestPostingTime
+      tags: [metrics]
+      summary: Best posting times suggestion for an account
+      parameters:
+        - name: account
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AccountName"
+      responses:
+        "200":
+          description: Best posting times
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BestTimeResponse"
+
+  /metrics/growth/{account}:
+    get:
+      operationId: getGrowthData
+      tags: [metrics]
+      summary: Follower growth chart data last 30 days
+      parameters:
+        - name: account
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AccountName"
+      responses:
+        "200":
+          description: Growth data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GrowthDataPoint"
+
+  # ── Publishing ────────────────────────────────────────────────────────
+  /publishing/publish:
+    post:
+      operationId: publishPost
+      tags: [publishing]
+      summary: Publish a post immediately to Instagram
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PublishPostRequest"
+      responses:
+        "200":
+          description: Published post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishResult"
+
+  /publishing/schedule:
+    post:
+      operationId: schedulePost
+      tags: [publishing]
+      summary: Schedule a post for later publishing
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SchedulePostRequest"
+      responses:
+        "200":
+          description: Scheduled post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduledPost"
+
+  /publishing/history:
+    get:
+      operationId: getPublishingHistory
+      tags: [publishing]
+      summary: Publishing history with status
+      parameters:
+        - name: account
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AccountName"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Publishing history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PublishedPost"
+
+  /publishing/scheduled:
+    get:
+      operationId: getScheduledPosts
+      tags: [publishing]
+      summary: Get all scheduled (pending) posts
+      parameters:
+        - name: account
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AccountName"
+      responses:
+        "200":
+          description: Scheduled posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduledPost"
+
+  /publishing/scheduled/{id}:
+    delete:
+      operationId: cancelScheduledPost
+      tags: [publishing]
+      summary: Cancel a scheduled post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ── Video ─────────────────────────────────────────────────────────────
+  /video/process:
+    post:
+      operationId: processVideo
+      tags: [video]
+      summary: Trim, caption, and convert video to Reels format
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ProcessVideoRequest"
+      responses:
+        "200":
+          description: Processed video URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessedVideo"
+
+  /video/history:
+    get:
+      operationId: getVideoHistory
+      tags: [video]
+      summary: Video processing history
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Video history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VideoHistoryItem"
+
+  # ── Market Predictions ────────────────────────────────────────────────
+  /market/trends:
+    get:
+      operationId: getMarketTrends
+      tags: [market]
+      summary: Market trends for Brazilian digital medical market
+      parameters:
+        - name: niche
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [tricologia, ortopedia, medicina_esportiva, baby_tracking, geral]
+            default: geral
+      responses:
+        "200":
+          description: Market trends
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketTrendsResponse"
+
+  /market/seasonality:
+    get:
+      operationId: getSeasonalitySuggestions
+      tags: [market]
+      summary: Content suggestions by seasonality/calendar
+      responses:
+        "200":
+          description: Seasonality suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeasonalityResponse"
+
+  /market/monthly-report:
+    get:
+      operationId: getMonthlyReport
+      tags: [market]
+      summary: Monthly opportunities report
+      responses:
+        "200":
+          description: Monthly report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyReport"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +524,623 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    AccountName:
+      type: string
+      enum: [drdaniel, angelica, loysby]
+
+    SessionInfo:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        user:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            specialty:
+              type: string
+      required: [authenticated]
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required: [success]
+
+    GeneratePostRequest:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        topic:
+          type: string
+        specialty:
+          type: string
+        tone:
+          type: string
+          enum: [educational, inspirational, promotional, awareness]
+          default: educational
+        includeHashtags:
+          type: boolean
+          default: true
+        cfmCompliant:
+          type: boolean
+          default: true
+      required: [account, topic]
+
+    GenerateReelsScriptRequest:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        topic:
+          type: string
+        specialty:
+          type: string
+        durationSeconds:
+          type: integer
+          minimum: 30
+          maximum: 60
+          default: 45
+      required: [account, topic]
+
+    GeneratedContent:
+      type: object
+      properties:
+        id:
+          type: integer
+        account:
+          $ref: "#/components/schemas/AccountName"
+        type:
+          type: string
+          enum: [post, reels_script]
+        content:
+          type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+        specialty:
+          type: string
+        cfmCompliant:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, account, type, content, createdAt]
+
+    ContentHistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        account:
+          $ref: "#/components/schemas/AccountName"
+        type:
+          type: string
+        topic:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, account, type, content, createdAt]
+
+    TrendsResponse:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        specialty:
+          type: string
+        trends:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrendItem"
+        fetchedAt:
+          type: string
+          format: date-time
+      required: [trends, fetchedAt]
+
+    TrendItem:
+      type: object
+      properties:
+        rank:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        source:
+          type: string
+        url:
+          type: string
+      required: [rank, title, description]
+
+    InnovationsResponse:
+      type: object
+      properties:
+        specialty:
+          type: string
+        innovations:
+          type: array
+          items:
+            $ref: "#/components/schemas/InnovationItem"
+        fetchedAt:
+          type: string
+          format: date-time
+      required: [innovations, fetchedAt]
+
+    InnovationItem:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        source:
+          type: string
+        url:
+          type: string
+        date:
+          type: string
+      required: [title, summary]
+
+    GenerateImageRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+        account:
+          $ref: "#/components/schemas/AccountName"
+        style:
+          type: string
+          default: professional medical
+        width:
+          type: integer
+          default: 1080
+        height:
+          type: integer
+          default: 1350
+      required: [prompt]
+
+    CreateCardRequest:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        text:
+          type: string
+        subtext:
+          type: string
+        image:
+          type: string
+          format: binary
+      required: [account, text]
+
+    GeneratedImage:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+        thumbnailUrl:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        account:
+          $ref: "#/components/schemas/AccountName"
+        prompt:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, url, createdAt]
+
+    ImageHistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+        account:
+          $ref: "#/components/schemas/AccountName"
+        type:
+          type: string
+          enum: [generated, card]
+        prompt:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, url, createdAt]
+
+    MetricsOverview:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountSummary"
+        lastUpdated:
+          type: string
+          format: date-time
+      required: [accounts, lastUpdated]
+
+    AccountSummary:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        displayName:
+          type: string
+        specialty:
+          type: string
+        followers:
+          type: integer
+        followersGrowth:
+          type: number
+        reach30d:
+          type: integer
+        impressions30d:
+          type: integer
+        engagementRate:
+          type: number
+        postsCount:
+          type: integer
+      required: [account, displayName, followers, reach30d, impressions30d, engagementRate]
+
+    AccountMetrics:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        displayName:
+          type: string
+        specialty:
+          type: string
+        followers:
+          type: integer
+        following:
+          type: integer
+        postsCount:
+          type: integer
+        reach30d:
+          type: integer
+        impressions30d:
+          type: integer
+        engagementRate:
+          type: number
+        likes30d:
+          type: integer
+        comments30d:
+          type: integer
+        shares30d:
+          type: integer
+        saves30d:
+          type: integer
+        profileVisits30d:
+          type: integer
+        websiteClicks30d:
+          type: integer
+      required: [account, displayName, followers, reach30d, impressions30d, engagementRate]
+
+    InstagramPost:
+      type: object
+      properties:
+        id:
+          type: string
+        mediaUrl:
+          type: string
+        thumbnailUrl:
+          type: string
+        caption:
+          type: string
+        likes:
+          type: integer
+        comments:
+          type: integer
+        reach:
+          type: integer
+        impressions:
+          type: integer
+        engagementRate:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+        permalink:
+          type: string
+      required: [id, likes, comments, engagementRate, timestamp]
+
+    BestTimeResponse:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        bestTimes:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimeSlot"
+        analysis:
+          type: string
+      required: [account, bestTimes]
+
+    TimeSlot:
+      type: object
+      properties:
+        dayOfWeek:
+          type: string
+        hour:
+          type: integer
+        engagementScore:
+          type: number
+        recommendation:
+          type: string
+      required: [dayOfWeek, hour, engagementScore]
+
+    GrowthDataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        followers:
+          type: integer
+        reach:
+          type: integer
+        impressions:
+          type: integer
+      required: [date, followers]
+
+    PublishPostRequest:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        caption:
+          type: string
+        hashtags:
+          type: string
+        image:
+          type: string
+          format: binary
+      required: [account, caption]
+
+    SchedulePostRequest:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountName"
+        caption:
+          type: string
+        hashtags:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        image:
+          type: string
+          format: binary
+      required: [account, caption, scheduledAt]
+
+    PublishResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        instagramPostId:
+          type: string
+        permalink:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+      required: [success, publishedAt]
+
+    ScheduledPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        account:
+          $ref: "#/components/schemas/AccountName"
+        caption:
+          type: string
+        hashtags:
+          type: string
+        imageUrl:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, published, failed, cancelled]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, account, caption, scheduledAt, status, createdAt]
+
+    PublishedPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        account:
+          $ref: "#/components/schemas/AccountName"
+        caption:
+          type: string
+        imageUrl:
+          type: string
+        instagramPostId:
+          type: string
+        status:
+          type: string
+          enum: [published, failed, scheduled, cancelled]
+        publishedAt:
+          type: string
+          format: date-time
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, account, caption, status, createdAt]
+
+    ProcessVideoRequest:
+      type: object
+      properties:
+        startSeconds:
+          type: number
+          default: 0
+        endSeconds:
+          type: number
+        addCaptions:
+          type: boolean
+          default: false
+        convertToReels:
+          type: boolean
+          default: true
+        video:
+          type: string
+          format: binary
+      required: [video]
+
+    ProcessedVideo:
+      type: object
+      properties:
+        id:
+          type: integer
+        outputUrl:
+          type: string
+        duration:
+          type: number
+        format:
+          type: string
+        captions:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, outputUrl, duration, createdAt]
+
+    VideoHistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        originalName:
+          type: string
+        outputUrl:
+          type: string
+        duration:
+          type: number
+        hasCaptions:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, outputUrl, duration, createdAt]
+
+    MarketTrendsResponse:
+      type: object
+      properties:
+        niche:
+          type: string
+        trends:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarketTrendItem"
+        analysis:
+          type: string
+        fetchedAt:
+          type: string
+          format: date-time
+      required: [trends, fetchedAt]
+
+    MarketTrendItem:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        opportunity:
+          type: string
+        growthPotential:
+          type: string
+          enum: [low, medium, high, very_high]
+        sources:
+          type: array
+          items:
+            type: string
+      required: [title, description, growthPotential]
+
+    SeasonalityResponse:
+      type: object
+      properties:
+        currentMonth:
+          type: string
+        suggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeasonalitySuggestion"
+      required: [currentMonth, suggestions]
+
+    SeasonalitySuggestion:
+      type: object
+      properties:
+        event:
+          type: string
+        date:
+          type: string
+        contentIdeas:
+          type: array
+          items:
+            type: string
+        relevantSpecialties:
+          type: array
+          items:
+            type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+      required: [event, contentIdeas, priority]
+
+    MonthlyReport:
+      type: object
+      properties:
+        month:
+          type: string
+        year:
+          type: integer
+        opportunities:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarketTrendItem"
+        recommendations:
+          type: array
+          items:
+            type: string
+        generatedAt:
+          type: string
+          format: date-time
+      required: [month, year, opportunities, recommendations, generatedAt]

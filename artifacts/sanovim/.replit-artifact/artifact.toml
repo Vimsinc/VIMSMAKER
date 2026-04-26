@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "SANOVIM — Marketing Médico com IA"
+version = "1.0.0"
+id = "artifacts/sanovim"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 3000
+
+[services.development]
+run = "pnpm --filter @workspace/sanovim run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sanovim", "run", "build" ]
+publicDir = "artifacts/sanovim/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "3000"
+BASE_PATH = "/"

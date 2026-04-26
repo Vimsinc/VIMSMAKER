@@ -1,8 +1,13 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const app: Express = express();
 
@@ -30,5 +35,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+export async function setupViteDevMiddleware(app: Express): Promise<void> {
+  const { createServer } = await import("vite");
+  const sanovimRoot = path.resolve(__dirname, "../../sanovim");
+  const vite = await createServer({
+    root: sanovimRoot,
+    configFile: path.join(sanovimRoot, "vite.config.ts"),
+    server: { middlewareMode: true },
+    appType: "spa",
+  });
+  app.use(vite.middlewares);
+}
+
+export async function setupStaticServing(app: Express): Promise<void> {
+  const staticDir = path.resolve(__dirname, "../../sanovim/dist/public");
+  if (fs.existsSync(staticDir)) {
+    app.use(express.static(staticDir));
+    app.get("*", (_req: Request, res: Response) => {
+      res.sendFile(path.join(staticDir, "index.html"));
+    });
+  }
+}
 
 export default app;
