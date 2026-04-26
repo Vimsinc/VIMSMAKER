@@ -46,13 +46,14 @@ export default function Images() {
       return;
     }
     try {
-      const formData = new FormData();
-      formData.append("account", account);
-      formData.append("text", cardText);
-      if (cardSubtext) formData.append("subtext", cardSubtext);
-      if (selectedFile) formData.append("image", selectedFile);
-
-      const result = await createCard.mutateAsync({ data: formData as unknown as { account: typeof account; text: string } });
+      const result = await createCard.mutateAsync({
+        data: {
+          account,
+          text: cardText,
+          subtext: cardSubtext || undefined,
+          image: selectedFile || undefined,
+        },
+      });
       setGeneratedUrl(result.url);
       toast({ title: "Card criado com sucesso!" });
     } catch {

@@ -27,7 +27,6 @@ externalPort = 8080
 localPort = 8081
 externalPort = 80
 
-[userenv]
-
-[userenv.shared]
-INSTAGRAM_GRAPH_API_URL = "https://graph.instagram.com/v25.0"
+[[ports]]
+localPort = 24678
+externalPort = 3000
