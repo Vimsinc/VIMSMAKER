@@ -24,6 +24,10 @@ interface RunwareImageResult {
   NSFWContent?: boolean;
 }
 
+function roundTo64(value: number): number {
+  return Math.round(value / 64) * 64;
+}
+
 export async function generateImage(params: {
   prompt: string;
   width?: number;
@@ -35,13 +39,16 @@ export async function generateImage(params: {
     return null;
   }
 
+  const width = Math.max(128, Math.min(2048, roundTo64(params.width || 1080)));
+  const height = Math.max(128, Math.min(2048, roundTo64(params.height || 1344)));
+
   const task: RunwareTask = {
     taskType: "imageInference",
     taskUUID: crypto.randomUUID(),
     positivePrompt: `${params.prompt}, professional medical photography, high quality, 8k`,
     model: "runware:100@1",
-    width: params.width || 1080,
-    height: params.height || 1350,
+    width,
+    height,
     numberResults: 1,
     outputFormat: "WEBP",
     steps: 20,
