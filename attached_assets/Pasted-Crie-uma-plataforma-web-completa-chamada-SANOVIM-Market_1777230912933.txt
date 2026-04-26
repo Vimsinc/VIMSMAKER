@@ -1,0 +1,93 @@
+Crie uma plataforma web completa chamada SANOVIM — Marketing Médico com IA.
+
+## Stack
+- Frontend: React + Vite + TypeScript + Tailwind CSS
+- Backend: Node.js + Express + TypeScript
+- Banco: Supabase
+- Monorepo: pnpm workspaces
+
+## Contas Instagram integradas
+3 contas via Meta Graph API:
+- Dr. Daniel: INSTAGRAM_TOKEN_DRDANIEL + INSTAGRAM_USER_ID_DRDANIEL
+- Enf. Angélica: INSTAGRAM_TOKEN_ANGELICA + INSTAGRAM_USER_ID_ANGELICA
+- Loysby: INSTAGRAM_TOKEN_LOYSBY + INSTAGRAM_USER_ID_LOYSBY
+- URL base: INSTAGRAM_GRAPH_API_URL=https://graph.instagram.com/v25.0
+
+## Módulo 1 — Geração de Conteúdo com IA
+- Gerar post para Instagram com Claude (ANTHROPIC_API_KEY)
+- Gerar roteiro de Reels 30-60s
+- Top 5 tendências do nicho médico via Serper (SERPER_KEY)
+- Novidades e inovações da especialidade
+- Seguir normas CFM em todo conteúdo
+- Seletor de conta: Dr. Daniel / Angélica / Loysby
+- Especialidade automática por conta selecionada
+
+## Módulo 2 — Geração e Edição de Imagens
+- Upload de imagem do médico
+- Gerar card profissional (PIL/Pillow): texto sobreposto, fundo com cor dominante, formato 1080x1350
+- Gerar imagem do zero via Runware API (RUNWARE_API_KEY)
+- Preview do resultado antes de baixar
+- Download da imagem gerada
+
+## Módulo 3 — Métricas do Instagram
+- Painel unificado com as 3 contas
+- Métricas: seguidores, alcance, impressões, engajamento últimos 30 dias
+- Top 5 posts com melhor desempenho por conta
+- Gráfico de crescimento (Recharts)
+- Sugestão de melhor horário para postar
+
+## Módulo 4 — Publicação Automática
+- Selecionar conta (Dr. Daniel / Angélica / Loysby)
+- Upload de imagem + legenda + hashtags
+- Publicar imediatamente via Meta Graph API
+- Agendar publicação (data e hora)
+- Histórico de publicações com status
+
+## Módulo 5 — Edição de Vídeo (FFmpeg)
+- Upload de vídeo (mp4, mov)
+- Corte: definir início e fim em segundos
+- Legenda automática via Whisper (OPENAI_API_KEY)
+- Converter para Reels (9:16, até 90s)
+- Download do vídeo processado
+
+## Módulo 6 — Previsões de Mercado
+- Tendências do mercado médico digital brasileiro
+- Busca via Serper (SERPER_KEY) + análise Claude
+- Nichos: tricologia, ortopedia, medicina esportiva, baby tracking
+- Sugestões de conteúdo por sazonalidade
+- Relatório mensal de oportunidades
+
+## Autenticação
+- Login email/senha via Supabase Auth
+- Multi-tenant por conta selecionada
+- Perfil com especialidade médica
+
+## UI/UX
+- Sidebar com 6 módulos
+- Seletor de conta Instagram no topo (Dr. Daniel / Angélica / Loysby)
+- Dark mode médico (azul escuro + branco)
+- Upload drag-and-drop
+- Preview em tempo real
+- Toast notifications
+
+## Secrets necessários no Replit
+SUPABASE_URL
+SUPABASE_ANON_KEY
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+ANTHROPIC_API_KEY
+RUNWARE_API_KEY
+SERPER_KEY
+OPENAI_API_KEY
+INSTAGRAM_TOKEN_DRDANIEL
+INSTAGRAM_USER_ID_DRDANIEL
+INSTAGRAM_TOKEN_ANGELICA
+INSTAGRAM_USER_ID_ANGELICA
+INSTAGRAM_TOKEN_LOYSBY
+INSTAGRAM_USER_ID_LOYSBY
+INSTAGRAM_GRAPH_API_URL
+
+## Entrega
+- Após cada módulo: commit + push GitHub (Vimsinc/sanovim-web)
+- Relatório completo ao final
+- 100% funcional no Replit
