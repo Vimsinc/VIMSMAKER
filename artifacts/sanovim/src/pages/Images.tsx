@@ -191,15 +191,18 @@ export default function Images() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">
-                  Alterar cenário / fundo / roupa
-                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">(opcional — só funciona com foto)</span>
+                <label className="text-sm font-medium text-foreground mb-1 block">
+                  Cenário de fundo (IA)
+                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">opcional</span>
                 </label>
+                <p className="text-xs text-muted-foreground mb-1.5">
+                  Descreva o ambiente gerado por IA ao redor da pessoa — consultório, jardim, clínica moderna, etc. A foto da pessoa é preservada exatamente como enviada.
+                </p>
                 <textarea
                   data-testid="input-card-description"
                   value={cardDescription}
                   onChange={(e) => setCardDescription(e.target.value)}
-                  placeholder="Ex: fundo de consultório moderno, jaleco branco, cenário externo com jardim"
+                  placeholder="Ex: consultório moderno azul, jardim externo com luz natural, clínica branca minimalista..."
                   rows={3}
                   className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
                 />

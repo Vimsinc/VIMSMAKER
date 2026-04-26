@@ -26,56 +26,90 @@ async function fetchBuffer(url: string): Promise<Buffer> {
   return Buffer.from(await resp.arrayBuffer());
 }
 
+// Auto-correct EXIF rotation and return normalized JPEG buffer
+async function normalizeOrientation(buffer: Buffer, mimetype: string): Promise<Buffer> {
+  return sharp(buffer)
+    .rotate()           // reads EXIF orientation and auto-rotates
+    .jpeg({ quality: 95 })
+    .toBuffer();
+}
+
 // Gradient fallback background
 async function buildGradientBackground(w: number, h: number): Promise<Buffer> {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
     <defs>
-      <linearGradient id="bg" x1="0" y1="0" x2="0.4" y2="1">
+      <linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1">
         <stop offset="0%" stop-color="#0a1628"/>
-        <stop offset="50%" stop-color="#1a3a6b"/>
+        <stop offset="55%" stop-color="#1a3a6b"/>
         <stop offset="100%" stop-color="#0e7490"/>
       </linearGradient>
-      <radialGradient id="glow" cx="70%" cy="30%" r="50%">
-        <stop offset="0%" stop-color="#1e88e5" stop-opacity="0.25"/>
+      <radialGradient id="glow" cx="65%" cy="25%" r="55%">
+        <stop offset="0%" stop-color="#1e88e5" stop-opacity="0.3"/>
         <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
       </radialGradient>
     </defs>
     <rect width="${w}" height="${h}" fill="url(#bg)"/>
     <rect width="${w}" height="${h}" fill="url(#glow)"/>
-    <circle cx="${w * 0.85}" cy="${h * 0.15}" r="${w * 0.3}" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.12"/>
-    <circle cx="${w * 0.85}" cy="${h * 0.15}" r="${w * 0.2}" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.1"/>
+    <circle cx="${w * 0.82}" cy="${h * 0.12}" r="${w * 0.32}" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.1"/>
+    <circle cx="${w * 0.82}" cy="${h * 0.12}" r="${w * 0.22}" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.08"/>
   </svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-// Text overlay SVG
+// Text overlay SVG — clean layout with accent bar
 function buildTextOverlaySvg(w: number, h: number, text: string, subtext: string, displayName: string): string {
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const overlayH = Math.round(h * 0.38);
-  const overlayY = h - overlayH;
+  const gradH = Math.round(h * 0.40);
+  const gradY = h - gradH;
+  const pad = Math.round(w * 0.08);
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
     <defs>
       <linearGradient id="textbg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#000" stop-opacity="0"/>
-        <stop offset="40%" stop-color="#0a1628" stop-opacity="0.72"/>
-        <stop offset="100%" stop-color="#0a1628" stop-opacity="0.96"/>
+        <stop offset="0%"   stop-color="#000000" stop-opacity="0"/>
+        <stop offset="35%"  stop-color="#060e1e" stop-opacity="0.65"/>
+        <stop offset="100%" stop-color="#060e1e" stop-opacity="0.97"/>
       </linearGradient>
     </defs>
-    <rect x="0" y="${overlayY}" width="${w}" height="${overlayH}" fill="url(#textbg)"/>
-    <rect x="${w * 0.08}" y="${h - Math.round(overlayH * 0.78)}" width="${Math.round(w * 0.06)}" height="3" fill="#38bdf8"/>
-    <text x="${w * 0.08}" y="${h - Math.round(overlayH * 0.6)}"
-      font-family="Arial, Helvetica, sans-serif" font-weight="bold"
-      font-size="${Math.round(w * 0.058)}" fill="#ffffff" letter-spacing="0.5">${esc(text)}</text>
-    <text x="${w * 0.08}" y="${h - Math.round(overlayH * 0.42)}"
-      font-family="Arial, Helvetica, sans-serif" font-weight="normal"
-      font-size="${Math.round(w * 0.036)}" fill="#94d2e0">${esc(subtext)}</text>
-    <text x="${w * 0.08}" y="${h - Math.round(overlayH * 0.14)}"
-      font-family="Arial, Helvetica, sans-serif" font-weight="bold"
-      font-size="${Math.round(w * 0.028)}" fill="#38bdf8" letter-spacing="2">${esc(displayName).toUpperCase()}</text>
+    <rect x="0" y="${gradY}" width="${w}" height="${gradH}" fill="url(#textbg)"/>
+
+    <!-- accent line -->
+    <rect x="${pad}" y="${h - Math.round(gradH * 0.76)}"
+          width="${Math.round(w * 0.055)}" height="3" rx="1.5" fill="#38bdf8"/>
+
+    <!-- main title -->
+    <text x="${pad}" y="${h - Math.round(gradH * 0.58)}"
+      font-family="Arial Black, Arial, Helvetica, sans-serif"
+      font-weight="900" font-size="${Math.round(w * 0.062)}"
+      fill="#ffffff" letter-spacing="-0.5">${esc(text)}</text>
+
+    <!-- subtitle -->
+    <text x="${pad}" y="${h - Math.round(gradH * 0.40)}"
+      font-family="Arial, Helvetica, sans-serif"
+      font-weight="400" font-size="${Math.round(w * 0.034)}"
+      fill="#b0d8e8">${esc(subtext)}</text>
+
+    <!-- brand name -->
+    <text x="${pad}" y="${h - Math.round(gradH * 0.12)}"
+      font-family="Arial, Helvetica, sans-serif"
+      font-weight="700" font-size="${Math.round(w * 0.027)}"
+      fill="#38bdf8" letter-spacing="3">${esc(displayName).toUpperCase()}</text>
   </svg>`;
 }
 
-// Composite any background buffer + optional person (transparent PNG) + text overlay
+// Ground shadow ellipse — makes person look anchored
+function buildGroundShadowSvg(w: number, h: number, personW: number): string {
+  const cx = w / 2;
+  const cy = h - 2;
+  const rx = Math.round(personW * 0.38);
+  const ry = Math.round(w * 0.018);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
+      fill="rgba(0,0,0,0.45)"/>
+  </svg>`;
+}
+
+// Main composite function
 async function compositeCard(
   backgroundBuffer: Buffer,
   personPngBuffer: Buffer | null,
@@ -85,7 +119,7 @@ async function compositeCard(
   w = 1080,
   h = 1350,
 ): Promise<Buffer> {
-  // Resize background
+  // Resize background to exact card size
   const bg = await sharp(backgroundBuffer)
     .resize(w, h, { fit: "cover", position: "center" })
     .png()
@@ -94,28 +128,42 @@ async function compositeCard(
   const layers: sharp.OverlayOptions[] = [];
 
   if (personPngBuffer) {
-    // Scale person to fill bottom 85% of card height, keep aspect ratio
     const meta = await sharp(personPngBuffer).metadata();
-    const pw = meta.width || 800;
-    const ph = meta.height || 1000;
-    const targetH = Math.round(h * 0.85);
-    const targetW = Math.round(targetH * (pw / ph));
-    const finalW = Math.min(targetW, w);
-    const finalH = Math.round(finalW * (ph / pw));
+    const pw = meta.width || 600;
+    const ph = meta.height || 900;
+    const aspect = pw / ph;
+
+    // Scale person to 88% of card height, centered horizontally, anchored to bottom
+    const personH = Math.round(h * 0.88);
+    let personW = Math.round(personH * aspect);
+    // Clamp width to 95% of card width
+    if (personW > Math.round(w * 0.95)) {
+      personW = Math.round(w * 0.95);
+    }
+    const finalH = Math.round(personW / aspect);
 
     const personResized = await sharp(personPngBuffer)
-      .resize(finalW, finalH, { fit: "inside" })
+      .resize(personW, finalH, { fit: "fill" })
       .png()
       .toBuffer();
 
-    layers.push({ input: personResized, gravity: "south" });
+    const left = Math.round((w - personW) / 2);
+    const top = h - finalH; // anchor to bottom
+
+    // Ground shadow
+    const shadowSvg = buildGroundShadowSvg(w, h, personW);
+    const shadowBuf = await sharp(Buffer.from(shadowSvg)).png().toBuffer();
+    layers.push({ input: shadowBuf, blend: "multiply" });
+
+    // Person
+    layers.push({ input: personResized, left, top });
   }
 
-  // Text overlay
-  const svgBuf = await sharp(Buffer.from(buildTextOverlaySvg(w, h, text, subtext, displayName)))
+  // Text + gradient overlay
+  const textBuf = await sharp(Buffer.from(buildTextOverlaySvg(w, h, text, subtext, displayName)))
     .png()
     .toBuffer();
-  layers.push({ input: svgBuf, blend: "over" });
+  layers.push({ input: textBuf, blend: "over" });
 
   return sharp(bg)
     .composite(layers)
@@ -136,13 +184,10 @@ router.get("/images/card-file/:filename", (req, res): void => {
   res.sendFile(filePath);
 });
 
-// Generate image with Runware
+// Generate image
 router.post("/images/generate", async (req, res): Promise<void> => {
   const parsed = GenerateImageBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const { prompt, account, style, width, height } = parsed.data;
   const fullPrompt = `${prompt}, ${style || "professional medical photography"}, high quality`;
@@ -153,13 +198,9 @@ router.post("/images/generate", async (req, res): Promise<void> => {
       `https://placehold.co/${width || 1080}x${height || 1350}/0f1729/38bdf8?text=${encodeURIComponent((prompt || "Imagem").slice(0, 40))}`;
 
     const [saved] = await db.insert(imagesHistoryTable).values({
-      account: account || null,
-      type: "generated",
-      url: imageUrl,
-      thumbnailUrl: imageUrl,
-      prompt: fullPrompt,
-      width: width || 1080,
-      height: height || 1350,
+      account: account || null, type: "generated", url: imageUrl,
+      thumbnailUrl: imageUrl, prompt: fullPrompt,
+      width: width || 1080, height: height || 1350,
     }).returning();
 
     res.json(GenerateImageResponse.parse({
@@ -186,72 +227,68 @@ router.post("/images/create-card", upload.single("image"), async (req, res): Pro
   };
   const displayName = account ? accountNames[account] || account : "";
   const hasPhoto = !!req.file;
+  const sceneDesc = description?.trim() || "";
 
   try {
     let imageUrl: string;
 
     if (hasPhoto) {
-      req.log.info({ fileSize: req.file!.size }, "Photo received — running Runware pipeline");
+      req.log.info({ fileSize: req.file!.size, mimetype: req.file!.mimetype }, "Photo received");
 
-      // Build background prompt
-      const bgPrompt = description?.trim()
-        ? `Professional medical background: ${description.trim()}, clean, elegant, blue and white tones, studio lighting, high quality, no people`
-        : `Professional medical clinic studio background, dark navy blue gradient with soft ambient light, elegant, clean, no people, no text, high quality`;
+      // Step 1: auto-correct EXIF orientation (fixes upside-down phone photos)
+      const orientedBuffer = await normalizeOrientation(req.file!.buffer, req.file!.mimetype);
+      req.log.info("EXIF orientation corrected");
 
-      // Step 1: remove background + generate AI background in parallel
+      // Build background prompt — include "person standing" context for better integration
+      const bgPrompt = sceneDesc
+        ? `Professional medical background scene: ${sceneDesc}. Clean studio environment, soft natural lighting from front, realistic depth of field, no people in background, no text. Designed for a portrait of a medical professional standing in foreground.`
+        : `Professional medical clinic reception or consultation room. Clean modern interior, white and blue tones, soft ambient lighting, bokeh background, no people, no text. Designed for a portrait composite.`;
+
+      req.log.info("Starting background removal + AI background generation in parallel");
+
+      // Step 2: remove background + generate AI background in parallel
       const [noBgUrl, bgUrl] = await Promise.all([
-        removeBackground(req.file!.buffer, req.file!.mimetype),
+        removeBackground(orientedBuffer, "image/jpeg"),
         generateBackground({ prompt: bgPrompt, width: 1080, height: 1344 }),
       ]);
 
-      req.log.info({ noBgUrl: !!noBgUrl, bgUrl: !!bgUrl }, "Runware pipeline results");
+      req.log.info({ noBgUrl: !!noBgUrl, bgUrl: !!bgUrl }, "Pipeline results");
 
-      let backgroundBuffer: Buffer;
-      let personBuffer: Buffer | null = null;
+      // Step 3: download both (or fall back)
+      const [personBuffer, backgroundBuffer] = await Promise.all([
+        noBgUrl ? fetchBuffer(noBgUrl) : Promise.resolve(orientedBuffer),
+        bgUrl   ? fetchBuffer(bgUrl)   : buildGradientBackground(1080, 1350),
+      ]);
 
-      if (bgUrl) {
-        backgroundBuffer = await fetchBuffer(bgUrl);
-      } else {
-        req.log.warn("Background generation failed, using gradient fallback");
-        backgroundBuffer = await buildGradientBackground(1080, 1350);
-      }
+      if (!noBgUrl) req.log.warn("Background removal failed — using original photo");
+      if (!bgUrl)   req.log.warn("Background generation failed — using gradient fallback");
 
-      if (noBgUrl) {
-        personBuffer = await fetchBuffer(noBgUrl);
-      } else {
-        req.log.warn("Background removal failed, using original photo");
-        personBuffer = req.file!.buffer;
-      }
-
+      // Step 4: composite
       const cardBuffer = await compositeCard(backgroundBuffer, personBuffer, text, subtext || "", displayName);
       const filename = `${crypto.randomUUID()}.jpg`;
       fs.writeFileSync(path.join(CARDS_DIR, filename), cardBuffer);
       imageUrl = `/api/images/card-file/${filename}`;
       req.log.info({ filename, size: cardBuffer.length }, "Card composited and saved");
     } else {
-      // No photo — pure AI generation
-      const prompt = description?.trim()
-        ? `Professional medical marketing card for ${displayName}, scene: ${description.trim()}, heading: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, blue and white, 1080x1350, high quality`
-        : `Professional medical clinic poster for ${displayName}, heading: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, modern blue and teal design, 1080x1350, high quality`;
+      // No photo — pure AI card
+      const prompt = sceneDesc
+        ? `Professional medical marketing poster: ${sceneDesc}. Heading: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}. Clean typography, blue and white medical design, 1080x1350 portrait, high quality.`
+        : `Professional medical marketing poster for ${displayName}. Heading: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}. Modern blue and white clinic design, clean typography, 1080x1350 portrait.`;
 
       const runwareUrl = await generateBackground({ prompt, width: 1080, height: 1344 });
 
+      let bgBuffer: Buffer;
       if (runwareUrl) {
-        // Composite text overlay on top of AI image
-        const aiBgBuffer = await fetchBuffer(runwareUrl);
-        const cardBuffer = await compositeCard(aiBgBuffer, null, text, subtext || "", displayName);
-        const filename = `${crypto.randomUUID()}.jpg`;
-        fs.writeFileSync(path.join(CARDS_DIR, filename), cardBuffer);
-        imageUrl = `/api/images/card-file/${filename}`;
+        bgBuffer = await fetchBuffer(runwareUrl);
       } else {
-        // Full local fallback
-        req.log.warn("Runware unavailable, using gradient fallback");
-        const gradBg = await buildGradientBackground(1080, 1350);
-        const cardBuffer = await compositeCard(gradBg, null, text, subtext || "", displayName);
-        const filename = `${crypto.randomUUID()}.jpg`;
-        fs.writeFileSync(path.join(CARDS_DIR, filename), cardBuffer);
-        imageUrl = `/api/images/card-file/${filename}`;
+        req.log.warn("Runware unavailable — gradient fallback");
+        bgBuffer = await buildGradientBackground(1080, 1350);
       }
+
+      const cardBuffer = await compositeCard(bgBuffer, null, text, subtext || "", displayName);
+      const filename = `${crypto.randomUUID()}.jpg`;
+      fs.writeFileSync(path.join(CARDS_DIR, filename), cardBuffer);
+      imageUrl = `/api/images/card-file/${filename}`;
     }
 
     const [saved] = await db.insert(imagesHistoryTable).values({
