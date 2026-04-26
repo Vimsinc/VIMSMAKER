@@ -122,7 +122,7 @@ export async function generateImage(params: {
     steps: 20,
     CFGScale: 7,
     outputType: ["URL"],
-    ...(imageInitiator && { imageInitiator, strength: 0.65 }),
+    ...(imageInitiator && { imageInitiator, strength: 0.30 }),
   };
 
   try {

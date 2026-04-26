@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useGenerateImage, useCreateProfessionalCard, useGetImageHistory, getGetImageHistoryQueryKey } from "@workspace/api-client-react";
 import { TopBar } from "@/components/TopBar";
 import { useAccount } from "@/context/AccountContext";
@@ -18,7 +18,15 @@ export default function Images() {
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!selectedFile) { setPhotoPreview(null); return; }
+    const url = URL.createObjectURL(selectedFile);
+    setPhotoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selectedFile]);
 
   const generateImage = useGenerateImage();
   const createCard = useCreateProfessionalCard();
@@ -197,29 +205,46 @@ export default function Images() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">Foto do medico (opcional)</label>
-                <div
-                  data-testid="dropzone-card-image"
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={handleFileDrop}
-                  onClick={() => fileRef.current?.click()}
-                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                    dragOver ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    {selectedFile ? selectedFile.name : "Arraste ou clique para selecionar"}
-                  </p>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  />
-                </div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Foto do médico (opcional)</label>
+                {photoPreview ? (
+                  <div className="relative rounded-lg overflow-hidden border border-border">
+                    <img src={photoPreview} alt="Foto selecionada" className="w-full max-h-52 object-cover" />
+                    <div className="absolute inset-0 bg-black/40 flex items-end p-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-xs font-medium truncate">{selectedFile?.name}</p>
+                        <p className="text-green-400 text-xs">✓ Foto carregada — será usada como base</p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
+                        className="ml-2 text-white/80 hover:text-white text-xs bg-black/40 rounded px-2 py-1 shrink-0"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    data-testid="dropzone-card-image"
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleFileDrop}
+                    onClick={() => fileRef.current?.click()}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                      dragOver ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Arraste ou clique para selecionar</p>
+                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG ou WEBP</p>
+                  </div>
+                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                />
               </div>
               <button
                 data-testid="button-create-card"

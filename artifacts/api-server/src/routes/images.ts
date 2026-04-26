@@ -81,8 +81,14 @@ router.post("/images/create-card", upload.single("image"), async (req, res): Pro
   const hasUploadedImage = !!req.file;
   const sceneDescription = description?.trim();
 
+  if (hasUploadedImage) {
+    req.log.info({ fileSize: req.file!.size, mimetype: req.file!.mimetype }, "Received photo for card creation");
+  } else {
+    req.log.info("No photo uploaded, generating card from prompt only");
+  }
+
   const prompt = hasUploadedImage
-    ? `Keep the person from the photo exactly as they are. ${sceneDescription ? `Change only: ${sceneDescription}.` : ""} Create a professional medical marketing card for ${displayName}, add elegant medical branding, text overlay: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean professional look, blue and white accents, Instagram portrait format, high quality`
+    ? `Preserve the person's face, identity, and body exactly. Keep the person completely unchanged.${sceneDescription ? ` Apply changes only to: ${sceneDescription}.` : " Change only the background to a professional medical setting."} Professional medical marketing card for ${displayName}, elegant branding overlay, title text: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, blue and white medical accents, Instagram portrait 1080x1350, photorealistic, high quality`
     : `Professional medical card design for ${displayName}${sceneDescription ? `, scene: ${sceneDescription}` : ""}, text: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean medical background, blue and white color scheme, 1080x1350 Instagram portrait format, high quality`;
 
   try {
