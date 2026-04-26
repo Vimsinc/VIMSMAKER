@@ -777,6 +777,9 @@ export const createProfessionalCard = async (
   if (createCardRequest.subtext !== undefined) {
     formData.append(`subtext`, createCardRequest.subtext);
   }
+  if (createCardRequest.description !== undefined) {
+    formData.append(`description`, createCardRequest.description);
+  }
   if (createCardRequest.image !== undefined) {
     formData.append(`image`, createCardRequest.image);
   }

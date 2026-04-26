@@ -11,5 +11,6 @@ export interface CreateCardRequest {
   account: AccountName;
   text: string;
   subtext?: string;
+  description?: string;
   image?: Blob;
 }

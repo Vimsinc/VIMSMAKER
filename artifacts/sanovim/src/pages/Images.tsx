@@ -14,6 +14,7 @@ export default function Images() {
   const [prompt, setPrompt] = useState("");
   const [cardText, setCardText] = useState("");
   const [cardSubtext, setCardSubtext] = useState("");
+  const [cardDescription, setCardDescription] = useState("");
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -51,6 +52,7 @@ export default function Images() {
           account,
           text: cardText,
           subtext: cardSubtext || undefined,
+          description: cardDescription || undefined,
           image: selectedFile || undefined,
         },
       });
@@ -178,6 +180,20 @@ export default function Images() {
                   onChange={(e) => setCardSubtext(e.target.value)}
                   placeholder="Ex: Dr. Daniel - CRM 12345"
                   className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">
+                  Alterar cenário / fundo / roupa
+                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">(opcional — só funciona com foto)</span>
+                </label>
+                <textarea
+                  data-testid="input-card-description"
+                  value={cardDescription}
+                  onChange={(e) => setCardDescription(e.target.value)}
+                  placeholder="Ex: fundo de consultório moderno, jaleco branco, cenário externo com jardim"
+                  rows={3}
+                  className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
                 />
               </div>
               <div>

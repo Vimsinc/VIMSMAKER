@@ -64,7 +64,7 @@ router.post("/images/generate", async (req, res): Promise<void> => {
 
 // Create professional card
 router.post("/images/create-card", upload.single("image"), async (req, res): Promise<void> => {
-  const { account, text, subtext } = req.body as { account?: string; text?: string; subtext?: string };
+  const { account, text, subtext, description } = req.body as { account?: string; text?: string; subtext?: string; description?: string };
 
   if (!text) {
     res.status(400).json({ error: "text is required" });
@@ -79,9 +79,11 @@ router.post("/images/create-card", upload.single("image"), async (req, res): Pro
 
   const displayName = account ? accountNames[account] || account : "";
   const hasUploadedImage = !!req.file;
+  const sceneDescription = description?.trim();
+
   const prompt = hasUploadedImage
-    ? `Transform this photo into a professional medical marketing card for ${displayName}, add elegant medical branding overlay, text: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean professional look, blue and white accents, Instagram portrait format`
-    : `Professional medical card design for ${displayName}, text: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean medical background, blue and white color scheme, 1080x1350 Instagram portrait format`;
+    ? `Keep the person from the photo exactly as they are. ${sceneDescription ? `Change only: ${sceneDescription}.` : ""} Create a professional medical marketing card for ${displayName}, add elegant medical branding, text overlay: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean professional look, blue and white accents, Instagram portrait format, high quality`
+    : `Professional medical card design for ${displayName}${sceneDescription ? `, scene: ${sceneDescription}` : ""}, text: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean medical background, blue and white color scheme, 1080x1350 Instagram portrait format, high quality`;
 
   try {
     const result = await generateImage({

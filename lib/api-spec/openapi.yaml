@@ -723,6 +723,9 @@ components:
           type: string
         subtext:
           type: string
+        description:
+          type: string
+          description: Describe changes to background, clothing, or scene while keeping the person
         image:
           type: string
           format: binary
