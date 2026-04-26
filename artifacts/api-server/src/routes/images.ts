@@ -78,10 +78,19 @@ router.post("/images/create-card", upload.single("image"), async (req, res): Pro
   };
 
   const displayName = account ? accountNames[account] || account : "";
-  const prompt = `Professional medical card design for ${displayName}, text: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean medical background, blue and white color scheme, 1080x1350 Instagram portrait format`;
+  const hasUploadedImage = !!req.file;
+  const prompt = hasUploadedImage
+    ? `Transform this photo into a professional medical marketing card for ${displayName}, add elegant medical branding overlay, text: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean professional look, blue and white accents, Instagram portrait format`
+    : `Professional medical card design for ${displayName}, text: "${text}"${subtext ? `, subtitle: "${subtext}"` : ""}, clean medical background, blue and white color scheme, 1080x1350 Instagram portrait format`;
 
   try {
-    const result = await generateImage({ prompt, width: 1080, height: 1350 });
+    const result = await generateImage({
+      prompt,
+      width: 1080,
+      height: 1350,
+      imageBuffer: req.file?.buffer,
+      imageMimeType: req.file?.mimetype,
+    });
 
     const imageUrl = result?.url || `https://placehold.co/1080x1350/1e3a5f/ffffff?text=${encodeURIComponent(text)}`;
 
