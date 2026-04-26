@@ -41,7 +41,7 @@ The frontend (sanovim) is served via Vite middleware integrated into the api-ser
 
 ### 6 Modules
 1. **Content** - Claude AI post/reels generation, trends via Serper, history
-2. **Images** - Runware AI image generation, professional card creation, history
+2. **Images** - Runware AI image generation, professional card creation (Sharp compositing pipeline), history
 3. **Metrics** - Instagram Graph API metrics, growth data, best posting times, top posts
 4. **Publishing** - Publish/schedule posts to Instagram, history, cancel scheduled
 5. **Video** - OpenAI Whisper transcription, video processing for Reels format
