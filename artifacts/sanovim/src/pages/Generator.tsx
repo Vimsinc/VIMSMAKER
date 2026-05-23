@@ -54,8 +54,10 @@ export default function Generator() {
       if (!res.ok) throw new Error(data.error);
       setIdeas(data.ideas);
       setStep("ideas");
-    } catch {
-      toast({ title: "Erro ao gerar ideias", variant: "destructive" });
+    } catch (err) {
+      console.error("Generate ideas error:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      toast({ title: "Erro ao gerar ideias", description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
