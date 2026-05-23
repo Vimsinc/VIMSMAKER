@@ -118,7 +118,7 @@ export default function Trending() {
         toast({ title: "Nenhum dado encontrado para essa palavra-chave" });
       }
     } catch {
-      toast({ title: "Erro ao buscar Google Trends", variant: "destructive" });
+      toast({ title: "Erro ao buscar tendências", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -155,7 +155,7 @@ export default function Trending() {
               tab === "google" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <BarChart2 className="w-4 h-4" /> Google Trends
+            <BarChart2 className="w-4 h-4" /> Volume de Busca
           </button>
         </div>
 
@@ -291,11 +291,11 @@ export default function Trending() {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <Loader2 className="w-7 h-7 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Consultando Google Trends...</p>
+                <p className="text-sm text-muted-foreground">Consultando volume de buscas...</p>
               </div>
             ) : googleTopics.length > 0 ? (
               <div className="space-y-3">
-                <p className="text-xs text-muted-foreground">{googleTopics.length} termos encontrados no Google Trends</p>
+                <p className="text-xs text-muted-foreground">{googleTopics.length} termos em alta encontrados</p>
                 {googleTopics.map((topic, i) => (
                   <div key={i} className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors">
                     <div className="flex items-center gap-3">
@@ -328,8 +328,8 @@ export default function Trending() {
                   <BarChart2 className="w-7 h-7 text-muted-foreground" />
                 </div>
                 <div className="text-center">
-                  <p className="text-foreground font-medium mb-1">Pesquise no Google Trends</p>
-                  <p className="text-sm text-muted-foreground">Veja o volume de busca real de qualquer termo no Brasil</p>
+                  <p className="text-foreground font-medium mb-1">Pesquise volume de buscas</p>
+                  <p className="text-sm text-muted-foreground">Veja o interesse real de qualquer tema no Brasil</p>
                 </div>
               </div>
             )}
