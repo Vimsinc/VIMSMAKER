@@ -1,5 +1,3 @@
-import { AccountSelector } from "./AccountSelector";
-
 interface TopBarProps {
   title: string;
   subtitle?: string;
@@ -13,10 +11,7 @@ export function TopBar({ title, subtitle, actions }: TopBarProps) {
         <h1 className="text-base font-semibold text-foreground">{title}</h1>
         {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
       </div>
-      <div className="flex items-center gap-3">
-        {actions}
-        <AccountSelector />
-      </div>
+      {actions && <div className="flex items-center gap-3">{actions}</div>}
     </header>
   );
 }

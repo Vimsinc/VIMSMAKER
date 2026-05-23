@@ -2,15 +2,13 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AccountProvider } from "@/context/AccountContext";
 import { Sidebar } from "@/components/Sidebar";
 import Dashboard from "@/pages/Dashboard";
-import Content from "@/pages/Content";
+import Generator from "@/pages/Generator";
 import Images from "@/pages/Images";
-import Metrics from "@/pages/Metrics";
-import Publish from "@/pages/Publish";
 import VideoEditor from "@/pages/VideoEditor";
-import Market from "@/pages/Market";
+import Trending from "@/pages/Trending";
+import HistoryPage from "@/pages/HistoryPage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -29,12 +27,11 @@ function AppLayout() {
       <div className="flex-1 flex flex-col ml-16 md:ml-56 min-h-screen">
         <Switch>
           <Route path="/" component={Dashboard} />
-          <Route path="/content" component={Content} />
+          <Route path="/generator" component={Generator} />
           <Route path="/images" component={Images} />
-          <Route path="/metrics" component={Metrics} />
-          <Route path="/publish" component={Publish} />
           <Route path="/video" component={VideoEditor} />
-          <Route path="/market" component={Market} />
+          <Route path="/trending" component={Trending} />
+          <Route path="/history" component={HistoryPage} />
           <Route component={NotFound} />
         </Switch>
       </div>
@@ -46,11 +43,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AccountProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <AppLayout />
-          </WouterRouter>
-        </AccountProvider>
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <AppLayout />
+        </WouterRouter>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

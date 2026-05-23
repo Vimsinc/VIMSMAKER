@@ -1,226 +1,153 @@
 import { useState, useRef } from "react";
-import { useProcessVideo, useGetVideoHistory, getGetVideoHistoryQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { TopBar } from "@/components/TopBar";
 import { useToast } from "@/hooks/use-toast";
-import { Video, Upload, Loader2, Download, Clock, Captions, Film } from "lucide-react";
+import { TopBar } from "@/components/TopBar";
+import { Video, Upload, Loader2, Download, Captions, Film } from "lucide-react";
 
 export default function VideoEditor() {
   const { toast } = useToast();
-  const qc = useQueryClient();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [startSeconds, setStartSeconds] = useState(0);
-  const [endSeconds, setEndSeconds] = useState<number | undefined>(undefined);
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState<string>("");
   const [addCaptions, setAddCaptions] = useState(false);
   const [convertToReels, setConvertToReels] = useState(true);
-  const [processed, setProcessed] = useState<{ outputUrl: string; duration: number; captions?: string } | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [result, setResult] = useState<{ downloadUrl: string; filename: string; transcript?: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const processVideo = useProcessVideo();
-  const { data: history, isLoading: historyLoading } = useGetVideoHistory(
-    { limit: 10 },
-    { query: { enabled: showHistory, queryKey: getGetVideoHistoryQueryKey({ limit: 10 }) } }
-  );
 
   const handleProcess = async () => {
     if (!selectedFile) {
-      toast({ title: "Selecione um video", variant: "destructive" });
+      toast({ title: "Selecione um vídeo", variant: "destructive" });
       return;
     }
+    setProcessing(true);
+    setResult(null);
     try {
-      const formData = new FormData();
-      formData.append("video", selectedFile);
-      formData.append("startSeconds", String(startSeconds));
-      if (endSeconds !== undefined) formData.append("endSeconds", String(endSeconds));
-      formData.append("addCaptions", String(addCaptions));
-      formData.append("convertToReels", String(convertToReels));
-
-      const result = await processVideo.mutateAsync({ data: formData as unknown as { video: File } });
-      setProcessed({ outputUrl: result.outputUrl, duration: result.duration, captions: result.captions ?? undefined });
-      toast({ title: "Video processado com sucesso!" });
-      qc.invalidateQueries({ queryKey: getGetVideoHistoryQueryKey({ limit: 10 }) });
-    } catch {
-      toast({ title: "Erro ao processar video", variant: "destructive" });
+      const form = new FormData();
+      form.append("video", selectedFile);
+      form.append("startTime", String(startTime));
+      if (endTime) form.append("endTime", endTime);
+      form.append("addCaptions", String(addCaptions));
+      form.append("convertToReels", String(convertToReels));
+      const res = await fetch("/api/video/process", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setResult(data);
+      toast({ title: "Vídeo processado com sucesso!" });
+    } catch (e: unknown) {
+      toast({ title: (e as Error).message || "Erro ao processar vídeo", variant: "destructive" });
+    } finally {
+      setProcessing(false);
     }
   };
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <TopBar
-        title="Edicao de Video"
-        subtitle="Recorte, legendas e exportacao para Reels"
-        actions={
-          <button
-            onClick={() => setShowHistory((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Clock className="w-3.5 h-3.5" /> Historico
-          </button>
-        }
-      />
-      <div className="flex-1 p-4 md:p-6 overflow-y-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left: controls */}
+      <TopBar title="Editor de Vídeo" subtitle="Recorte, legendas e exportação para Reels" />
+      <div className="flex-1 p-6 overflow-y-auto">
+        <div className="max-w-3xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-5">
             {/* Upload */}
-            <div
-              data-testid="dropzone-video"
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f && (f.type.startsWith("video/"))) setSelectedFile(f); }}
-              onClick={() => fileRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}
-            >
-              <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              {selectedFile ? (
-                <div>
-                  <p className="text-sm font-medium text-foreground">{selectedFile.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{(selectedFile.size / 1024 / 1024).toFixed(1)} MB</p>
+            {selectedFile ? (
+              <div className="bg-card border border-border rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <Film className="w-8 h-8 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{selectedFile.name}</p>
+                    <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                  </div>
+                  <button onClick={() => setSelectedFile(null)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 border border-border rounded">Remover</button>
                 </div>
-              ) : (
-                <>
-                  <p className="text-sm text-muted-foreground">Arraste o video ou clique para selecionar</p>
-                  <p className="text-xs text-muted-foreground mt-1">MP4, MOV, AVI — max 500MB</p>
-                </>
-              )}
-              <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
-            </div>
+              </div>
+            ) : (
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) setSelectedFile(f); }}
+                onClick={() => fileRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${dragOver ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}
+              >
+                <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-foreground font-medium mb-1">Arraste o vídeo ou clique para selecionar</p>
+                <p className="text-xs text-muted-foreground">MP4, MOV, AVI — max 500MB</p>
+              </div>
+            )}
+            <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
 
-            {/* Trim controls */}
-            <div className="bg-card border border-border rounded-xl p-4 space-y-4">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Film className="w-4 h-4 text-primary" /> Recorte</h3>
-              <div className="grid grid-cols-2 gap-4">
+            {/* Trim */}
+            <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+              <p className="text-sm font-semibold text-foreground flex items-center gap-2"><Film className="w-4 h-4" /> Recorte</p>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Inicio (segundos)</label>
-                  <input
-                    data-testid="input-start-seconds"
-                    type="number"
-                    min={0}
-                    value={startSeconds}
-                    onChange={(e) => setStartSeconds(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary"
-                  />
+                  <label className="text-xs text-muted-foreground mb-1 block">Início (segundos)</label>
+                  <input type="number" min={0} value={startTime} onChange={(e) => setStartTime(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary" />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Fim (segundos)</label>
-                  <input
-                    data-testid="input-end-seconds"
-                    type="number"
-                    min={1}
-                    value={endSeconds ?? ""}
-                    onChange={(e) => setEndSeconds(e.target.value ? Number(e.target.value) : undefined)}
-                    placeholder="Auto"
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary"
-                  />
+                  <input type="text" value={endTime} onChange={(e) => setEndTime(e.target.value)} placeholder="Auto"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary" />
                 </div>
               </div>
             </div>
 
             {/* Options */}
             <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">Opcoes</h3>
-              <label className="flex items-center justify-between cursor-pointer">
-                <div className="flex items-center gap-2">
-                  <Captions className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">Legendas automaticas (Whisper)</span>
+              <p className="text-sm font-semibold text-foreground">Opções</p>
+              {[
+                { label: "Legendas automáticas (Whisper)", icon: Captions, value: addCaptions, set: setAddCaptions },
+                { label: "Converter para Reels (9:16, max 90s)", icon: Video, value: convertToReels, set: setConvertToReels },
+              ].map(({ label, icon: Icon, value, set }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-foreground">{label}</span>
+                  </div>
+                  <button
+                    onClick={() => set(!value)}
+                    className={`w-10 h-5 rounded-full transition-colors relative ${value ? "bg-primary" : "bg-muted"}`}
+                  >
+                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${value ? "translate-x-5" : "translate-x-0.5"}`} />
+                  </button>
                 </div>
-                <div
-                  data-testid="toggle-captions"
-                  onClick={() => setAddCaptions((v) => !v)}
-                  className={`w-10 h-6 rounded-full transition-colors cursor-pointer relative ${addCaptions ? "bg-primary" : "bg-muted"}`}
-                >
-                  <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${addCaptions ? "left-5" : "left-1"}`} />
-                </div>
-              </label>
-              <label className="flex items-center justify-between cursor-pointer">
-                <div className="flex items-center gap-2">
-                  <Video className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">Converter para Reels (9:16, max 90s)</span>
-                </div>
-                <div
-                  data-testid="toggle-reels"
-                  onClick={() => setConvertToReels((v) => !v)}
-                  className={`w-10 h-6 rounded-full transition-colors cursor-pointer relative ${convertToReels ? "bg-primary" : "bg-muted"}`}
-                >
-                  <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${convertToReels ? "left-5" : "left-1"}`} />
-                </div>
-              </label>
+              ))}
             </div>
 
             <button
-              data-testid="button-process-video"
               onClick={handleProcess}
-              disabled={processVideo.isPending || !selectedFile}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+              disabled={processing || !selectedFile}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {processVideo.isPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Processando...</> : <><Video className="w-4 h-4" /> Processar Video</>}
+              {processing ? <><Loader2 className="w-4 h-4 animate-spin" /> Processando...</> : <><Video className="w-4 h-4" /> Processar Vídeo</>}
             </button>
           </div>
 
-          {/* Right: result */}
-          <div className="space-y-4">
-            {processed ? (
-              <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <Video className="w-4 h-4" />
-                  <p className="text-sm font-semibold text-foreground">Video Processado</p>
+          {/* Result */}
+          <div className="bg-card border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center p-8 min-h-48">
+            {result ? (
+              <div className="w-full space-y-4">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                    <Video className="w-6 h-6 text-green-400" />
+                  </div>
+                  <p className="font-semibold text-foreground mb-1">Vídeo processado!</p>
+                  <p className="text-xs text-muted-foreground">{result.filename}</p>
                 </div>
-                <div className="bg-muted rounded-lg p-3 space-y-1">
-                  <p className="text-xs text-muted-foreground">Duracao: <span className="text-foreground">{processed.duration.toFixed(1)}s</span></p>
-                  <p className="text-xs text-muted-foreground">Formato: <span className="text-foreground">MP4 (Reels 9:16)</span></p>
-                </div>
-                {processed.captions && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Transcricao</p>
-                    <div className="bg-background/50 rounded-lg p-3 max-h-32 overflow-y-auto">
-                      <p className="text-xs text-foreground">{processed.captions}</p>
-                    </div>
+                <a href={result.downloadUrl} download className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+                  <Download className="w-4 h-4" /> Baixar Vídeo
+                </a>
+                {result.transcript && (
+                  <div className="bg-background rounded-lg p-3">
+                    <p className="text-xs font-medium text-foreground mb-1">Transcrição:</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-6">{result.transcript}</p>
                   </div>
                 )}
-                <a
-                  href={processed.outputUrl}
-                  download="sanovim-video.mp4"
-                  data-testid="button-download-video"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
-                >
-                  <Download className="w-4 h-4" /> Baixar Video
-                </a>
               </div>
             ) : (
-              <div className="bg-card border-2 border-dashed border-border rounded-xl flex items-center justify-center min-h-64">
-                <div className="text-center">
-                  <Video className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">Resultado do processamento</p>
-                  <p className="text-xs text-muted-foreground mt-1">Selecione um video e clique em processar</p>
-                </div>
-              </div>
-            )}
-
-            {/* History panel */}
-            {showHistory && (
-              <div className="bg-card border border-border rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-foreground mb-3">Historico de Videos</h3>
-                {historyLoading ? (
-                  <div className="space-y-2">{[0,1,2].map((i) => <div key={i} className="h-12 bg-muted rounded animate-pulse" />)}</div>
-                ) : history && history.length > 0 ? (
-                  <div className="space-y-2">
-                    {history.map((v) => (
-                      <div key={v.id} data-testid={`video-history-${v.id}`} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                        <div>
-                          <p className="text-xs text-foreground">{v.originalName}</p>
-                          <p className="text-xs text-muted-foreground">{v.duration.toFixed(1)}s &bull; {new Date(v.createdAt).toLocaleDateString("pt-BR")}</p>
-                        </div>
-                        <a href={v.outputUrl} download className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-                          <Download className="w-3.5 h-3.5" />
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-3">Nenhum video processado</p>
-                )}
+              <div className="text-center">
+                <Video className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground text-sm">Resultado do processamento</p>
+                <p className="text-xs text-muted-foreground mt-1">Selecione um vídeo e clique em processar</p>
               </div>
             )}
           </div>
