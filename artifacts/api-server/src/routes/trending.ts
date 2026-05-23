@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { searchTrends } from "../lib/serper";
+import { searchTrends, searchGoogleTrends } from "../lib/serper";
 import { db } from "@workspace/db";
 import { trendingCacheTable } from "@workspace/db/schema";
 import { desc, gte } from "drizzle-orm";
@@ -52,6 +52,18 @@ router.post("/trending/search", async (req, res) => {
   } catch (err) {
     req.log.error(err, "trending search error");
     return res.status(500).json({ error: "Erro na pesquisa" });
+  }
+});
+
+router.post("/trending/google-trends", async (req, res) => {
+  const { keyword } = req.body as { keyword: string };
+  if (!keyword) return res.status(400).json({ error: "keyword obrigatório" });
+  try {
+    const topics = await searchGoogleTrends(keyword);
+    return res.json({ topics });
+  } catch (err) {
+    req.log.error(err, "google trends error");
+    return res.status(500).json({ error: "Erro ao buscar Google Trends" });
   }
 });
 
