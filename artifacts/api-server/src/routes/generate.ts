@@ -14,7 +14,7 @@ router.post("/generate/ideas", async (req, res) => {
 
   try {
     const msg = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5",
       max_tokens: 1000,
       messages: [
         {
@@ -68,7 +68,7 @@ router.post("/generate/carousel", async (req, res) => {
 
   try {
     const msg = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5",
       max_tokens: 2000,
       messages: [
         {
@@ -124,7 +124,7 @@ router.post("/generate/legend", async (req, res) => {
 
   try {
     const msg = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5",
       max_tokens: 800,
       messages: [
         {
