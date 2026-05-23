@@ -4,11 +4,31 @@ import path from "path";
 import fs from "fs";
 import { logger } from "../lib/logger";
 import { processVideoForReels, VIDEOS_OUT_DIR } from "../lib/ffmpeg";
+import { db } from "@workspace/db";
+import { usersTable } from "@workspace/db/schema";
+import { sql, eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
 const uploadDir = "/tmp/vibemanager_videos";
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+function cleanOldVideoFiles(maxAgeMs = 24 * 60 * 60 * 1000) {
+  for (const dir of [uploadDir, VIDEOS_OUT_DIR]) {
+    try {
+      const files = fs.readdirSync(dir);
+      const now = Date.now();
+      for (const f of files) {
+        const fp = path.join(dir, f);
+        try {
+          const stat = fs.statSync(fp);
+          if (now - stat.mtimeMs > maxAgeMs) fs.unlinkSync(fp);
+        } catch {}
+      }
+    } catch {}
+  }
+}
+cleanOldVideoFiles();
 
 const upload = multer({
   dest: uploadDir,
@@ -87,6 +107,12 @@ router.post("/video/process", upload.single("video"), async (req, res): Promise<
 
     const outputFilename = path.basename(outputPath);
     const downloadUrl = `/api/video/download/${outputFilename}`;
+
+    if (duration) {
+      await db.update(usersTable)
+        .set({ videoSecondsUsed: sql`${usersTable.videoSecondsUsed} + ${Math.round(duration)}` })
+        .where(eq(usersTable.id, 1));
+    }
 
     res.json({
       filename: outputFilename,

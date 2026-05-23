@@ -5,12 +5,28 @@ import fs from "fs";
 import path from "path";
 import { generateImage } from "../lib/runware";
 import { generateImageGemini } from "../lib/gemini";
+import { db } from "@workspace/db";
+import { usersTable } from "@workspace/db/schema";
+import { sql, eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
 const CARDS_DIR = "/tmp/vibemanager-cards";
 fs.mkdirSync(CARDS_DIR, { recursive: true });
+
+function cleanOldFiles(dir: string, maxAgeMs = 24 * 60 * 60 * 1000) {
+  try {
+    const files = fs.readdirSync(dir);
+    const now = Date.now();
+    for (const f of files) {
+      const fp = path.join(dir, f);
+      const stat = fs.statSync(fp);
+      if (now - stat.mtimeMs > maxAgeMs) fs.unlinkSync(fp);
+    }
+  } catch {}
+}
+cleanOldFiles(CARDS_DIR);
 
 router.get("/images/card-file/:filename", (req, res): void => {
   const filename = path.basename(req.params.filename);
@@ -60,6 +76,7 @@ router.post("/images/generate-gemini", async (req, res): Promise<void> => {
     const resizedPath = path.join(CARDS_DIR, resizedFilename);
     fs.writeFileSync(resizedPath, resized);
 
+    await db.update(usersTable).set({ nanoBananaUsed: sql`${usersTable.nanoBananaUsed} + 1` }).where(eq(usersTable.id, 1));
     res.json({ url: `/api/images/card-file/${resizedFilename}` });
   } catch (err) {
     req.log.error(err, "generate gemini image error");

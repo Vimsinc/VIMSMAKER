@@ -7,7 +7,10 @@ import {
   TrendingUp,
   Zap,
   History,
+  Instagram,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@workspace/replit-auth-web";
 
 const navItems = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -16,10 +19,12 @@ const navItems = [
   { href: "/video", icon: Video, label: "Vídeo" },
   { href: "/trending", icon: TrendingUp, label: "Trending" },
   { href: "/history", icon: History, label: "Histórico" },
+  { href: "/publish", icon: Instagram, label: "Publicar" },
 ];
 
 export function Sidebar() {
   const [location] = useLocation();
+  const { user, logout } = useAuth();
 
   return (
     <aside className="w-16 md:w-56 flex flex-col h-screen bg-sidebar border-r border-sidebar-border shrink-0 fixed left-0 top-0 z-40">
@@ -53,8 +58,31 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="px-4 py-3 border-t border-sidebar-border hidden md:block">
-        <p className="text-[10px] text-muted-foreground">v1.0.0 &bull; VibeManager</p>
+      <div className="px-3 py-3 border-t border-sidebar-border space-y-2">
+        {user && (
+          <div className="hidden md:flex items-center gap-2 px-2 py-1.5 rounded-lg bg-sidebar-accent/50">
+            {user.profileImageUrl ? (
+              <img src={user.profileImageUrl} alt="" className="w-6 h-6 rounded-full shrink-0" />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                <span className="text-[10px] font-bold text-primary">
+                  {(user.firstName?.[0] || user.email?.[0] || "U").toUpperCase()}
+                </span>
+              </div>
+            )}
+            <p className="text-xs text-foreground font-medium truncate">
+              {user.firstName || user.email || "Usuário"}
+            </p>
+          </div>
+        )}
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          <span className="hidden md:block text-xs font-medium">Sair</span>
+        </button>
+        <p className="hidden md:block text-[10px] text-muted-foreground px-2">v1.0.0 &bull; VibeManager</p>
       </div>
     </aside>
   );

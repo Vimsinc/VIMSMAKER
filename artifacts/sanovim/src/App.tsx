@@ -9,7 +9,9 @@ import Images from "@/pages/Images";
 import VideoEditor from "@/pages/VideoEditor";
 import Trending from "@/pages/Trending";
 import HistoryPage from "@/pages/HistoryPage";
+import Publish from "@/pages/Publish";
 import NotFound from "@/pages/not-found";
+import { useAuth } from "@workspace/replit-auth-web";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,6 +21,31 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function LoginScreen() {
+  const { login } = useAuth();
+  return (
+    <div className="flex min-h-screen bg-background items-center justify-center">
+      <div className="text-center space-y-6 max-w-sm w-full px-6">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
+          <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">VibeManager</h1>
+          <p className="text-sm text-muted-foreground mt-1">Conteúdo Viral com IA</p>
+        </div>
+        <button
+          onClick={login}
+          className="w-full py-3 px-6 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors"
+        >
+          Entrar
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function AppLayout() {
   return (
@@ -32,6 +59,7 @@ function AppLayout() {
           <Route path="/video" component={VideoEditor} />
           <Route path="/trending" component={Trending} />
           <Route path="/history" component={HistoryPage} />
+          <Route path="/publish" component={Publish} />
           <Route component={NotFound} />
         </Switch>
       </div>
@@ -39,12 +67,25 @@ function AppLayout() {
   );
 }
 
+function AuthGate() {
+  const { isLoading, isAuthenticated } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  if (!isAuthenticated) return <LoginScreen />;
+  return <AppLayout />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <AppLayout />
+          <AuthGate />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

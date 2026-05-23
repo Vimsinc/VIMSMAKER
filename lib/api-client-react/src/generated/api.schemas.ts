@@ -9,6 +9,47 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface AuthUser {
+  id: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  firstName: string | null;
+  /** @nullable */
+  lastName: string | null;
+  /** @nullable */
+  profileImageUrl: string | null;
+}
+
+export interface AuthUserEnvelope {
+  user: AuthUser | null;
+}
+
+export interface MobileTokenExchangeRequest {
+  /** @minLength 1 */
+  code: string;
+  /** @minLength 1 */
+  code_verifier: string;
+  /** @minLength 1 */
+  redirect_uri: string;
+  /** @minLength 1 */
+  state: string;
+  /** @minLength 1 */
+  nonce?: string;
+}
+
+export interface MobileTokenExchangeSuccess {
+  token: string;
+}
+
+export interface LogoutSuccess {
+  success: boolean;
+}
+
+export interface ErrorEnvelope {
+  error: string;
+}
+
 export interface TrendingTopic {
   title: string;
   snippet?: string;
@@ -21,6 +62,35 @@ export interface TrendingResponse {
 
 export interface TrendingSearchBody {
   query: string;
+}
+
+export interface GoogleTrendsBody {
+  keyword: string;
+}
+
+export type GoogleTrendsTopicValuesItem = {
+  date?: string;
+  value?: number;
+};
+
+export type GoogleTrendsTopicTrend =
+  (typeof GoogleTrendsTopicTrend)[keyof typeof GoogleTrendsTopicTrend];
+
+export const GoogleTrendsTopicTrend = {
+  up: "up",
+  down: "down",
+  stable: "stable",
+} as const;
+
+export interface GoogleTrendsTopic {
+  query: string;
+  values?: GoogleTrendsTopicValuesItem[];
+  peakValue: number;
+  trend: GoogleTrendsTopicTrend;
+}
+
+export interface GoogleTrendsResponse {
+  topics: GoogleTrendsTopic[];
 }
 
 export interface GenerateIdeasBody {
@@ -84,7 +154,6 @@ export interface GenerationRecord {
 
 export interface GenerateImageBody {
   prompt: string;
-  account?: string;
   width?: number;
   height?: number;
 }
@@ -99,7 +168,6 @@ export const GenerateGeminiImageBodyQuality = {
 
 export interface GenerateGeminiImageBody {
   prompt: string;
-  account?: string;
   quality?: GenerateGeminiImageBodyQuality;
 }
 
@@ -120,6 +188,40 @@ export interface VideoResult {
   transcript?: string | null;
   duration?: number | null;
 }
+
+export interface InstagramAccount {
+  account: string;
+  displayName: string;
+  specialty: string;
+  hasToken: boolean;
+  hasUserId: boolean;
+}
+
+export interface InstagramPublishBody {
+  account: string;
+  imageUrl: string;
+  caption: string;
+}
+
+export interface InstagramPublishResult {
+  postId: string;
+  permalink: string;
+}
+
+/**
+ * Opaque session token — `Bearer <sid>`.
+ */
+export type AuthorizationSessionHeaderParameter = string;
+
+export type BeginBrowserLoginParams = {
+  returnTo?: string;
+};
+
+export type HandleBrowserLoginCallbackParams = {
+  code?: string;
+  state?: string;
+  iss?: string;
+};
 
 export type GetTrendingSuggestionsParams = {
   niche?: string;

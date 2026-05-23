@@ -15,6 +15,85 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
+ * @summary Get the currently authenticated user
+ */
+export const GetCurrentAuthUserHeader = zod.object({
+  Authorization: zod
+    .string()
+    .optional()
+    .describe("Opaque session token — `Bearer <sid>`."),
+});
+
+export const GetCurrentAuthUserResponse = zod.object({
+  user: zod.union([
+    zod.object({
+      id: zod.string(),
+      email: zod.string().nullable(),
+      firstName: zod.string().nullable(),
+      lastName: zod.string().nullable(),
+      profileImageUrl: zod.string().nullable(),
+    }),
+    zod.null(),
+  ]),
+});
+
+/**
+ * @summary Start the browser OIDC login flow
+ */
+export const BeginBrowserLoginQueryParams = zod.object({
+  returnTo: zod.coerce.string().optional(),
+});
+
+/**
+ * @summary Complete the browser OIDC login flow
+ */
+export const HandleBrowserLoginCallbackQueryParams = zod.object({
+  code: zod.coerce.string().optional(),
+  state: zod.coerce.string().optional(),
+  iss: zod.coerce.string().optional(),
+});
+
+/**
+ * @summary Clear the session and begin OIDC logout
+ */
+export const LogoutBrowserSessionHeader = zod.object({
+  Authorization: zod
+    .string()
+    .optional()
+    .describe("Opaque session token — `Bearer <sid>`."),
+});
+
+/**
+ * @summary Exchange a mobile OIDC code for a session token
+ */
+
+export const ExchangeMobileAuthorizationCodeBody = zod.object({
+  code: zod.string().min(1),
+  code_verifier: zod.string().min(1),
+  redirect_uri: zod.string().min(1),
+  state: zod.string().min(1),
+  nonce: zod.string().min(1).optional(),
+});
+
+export const ExchangeMobileAuthorizationCodeResponse = zod.object({
+  token: zod.string(),
+});
+
+/**
+ * @summary Delete a mobile session token
+ */
+export const LogoutMobileSessionHeader = zod.object({
+  Authorization: zod
+    .string()
+    .optional()
+    .describe("Opaque session token — `Bearer <sid>`."),
+});
+
+export const LogoutMobileSessionResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
  * @summary Get trending topic suggestions
  */
 export const GetTrendingSuggestionsQueryParams = zod.object({
@@ -46,6 +125,31 @@ export const SearchTrendingTopicsResponse = zod.object({
     }),
   ),
   cached: zod.boolean().optional(),
+});
+
+/**
+ * @summary Get Google Trends data for a keyword
+ */
+export const GetGoogleTrendsBody = zod.object({
+  keyword: zod.string(),
+});
+
+export const GetGoogleTrendsResponse = zod.object({
+  topics: zod.array(
+    zod.object({
+      query: zod.string(),
+      values: zod
+        .array(
+          zod.object({
+            date: zod.string().optional(),
+            value: zod.number().optional(),
+          }),
+        )
+        .optional(),
+      peakValue: zod.number(),
+      trend: zod.enum(["up", "down", "stable"]),
+    }),
+  ),
 });
 
 /**
@@ -127,7 +231,6 @@ export const GetGenerationHistoryResponse = zod.array(
  */
 export const GenerateImageBody = zod.object({
   prompt: zod.string(),
-  account: zod.string().optional(),
   width: zod.number().optional(),
   height: zod.number().optional(),
 });
@@ -141,7 +244,6 @@ export const GenerateImageResponse = zod.object({
  */
 export const GenerateImageGeminiBody = zod.object({
   prompt: zod.string(),
-  account: zod.string().optional(),
   quality: zod.enum(["flash", "pro"]).optional(),
 });
 
@@ -178,4 +280,32 @@ export const ProcessVideoResponse = zod.object({
  */
 export const DownloadVideoParams = zod.object({
   filename: zod.coerce.string(),
+});
+
+/**
+ * @summary List configured Instagram accounts
+ */
+export const GetInstagramAccountsResponseItem = zod.object({
+  account: zod.string(),
+  displayName: zod.string(),
+  specialty: zod.string(),
+  hasToken: zod.boolean(),
+  hasUserId: zod.boolean(),
+});
+export const GetInstagramAccountsResponse = zod.array(
+  GetInstagramAccountsResponseItem,
+);
+
+/**
+ * @summary Publish a post to Instagram
+ */
+export const PublishToInstagramBody = zod.object({
+  account: zod.string(),
+  imageUrl: zod.string(),
+  caption: zod.string(),
+});
+
+export const PublishToInstagramResponse = zod.object({
+  postId: zod.string(),
+  permalink: zod.string(),
 });

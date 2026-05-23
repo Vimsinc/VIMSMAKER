@@ -1,8 +1,8 @@
 import { Router } from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@workspace/db";
-import { generationsTable } from "@workspace/db/schema";
-import { desc } from "drizzle-orm";
+import { generationsTable, usersTable } from "@workspace/db/schema";
+import { desc, sql, eq } from "drizzle-orm";
 
 const router = Router();
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -52,6 +52,7 @@ Gere EXATAMENTE 3 ideias de posts virais para Instagram. Responda em JSON válid
       type: "ideas",
       content: JSON.stringify(parsed.ideas),
     });
+    await db.update(usersTable).set({ postsUsed: sql`${usersTable.postsUsed} + 1` }).where(eq(usersTable.id, 1));
 
     return res.json(parsed);
   } catch (err) {
@@ -107,6 +108,7 @@ Use 5 a 8 slides. Último slide sempre com CTA forte.`,
       type: "carousel",
       content: JSON.stringify(parsed),
     });
+    await db.update(usersTable).set({ postsUsed: sql`${usersTable.postsUsed} + 1` }).where(eq(usersTable.id, 1));
 
     return res.json(parsed);
   } catch (err) {

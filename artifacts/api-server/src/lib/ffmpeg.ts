@@ -2,7 +2,7 @@ import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 
-export const VIDEOS_OUT_DIR = "/tmp/sanovim_videos_out";
+export const VIDEOS_OUT_DIR = "/tmp/vibemanager_videos_out";
 fs.mkdirSync(VIDEOS_OUT_DIR, { recursive: true });
 
 export interface VideoProcessOptions {
