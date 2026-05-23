@@ -28,7 +28,8 @@ The frontend (sanovim) is served via Vite middleware integrated into the api-ser
 - React 19 + Vite 7 + TypeScript + Tailwind CSS v4
 - Router: wouter
 - State: React Query
-- 6 pages: Dashboard, Generator, Images, VideoEditor, Trending, HistoryPage
+- 5 pages: Dashboard, Generator, Images, VideoEditor, Trending, HistoryPage (Publish removido)
+- **Design 2026**: tema claro, Inter, azul #0D6EFD (216 96% 53%), soft shadows Apple-style
 - Deep navy dark theme (HSL CSS variables)
 
 ### Backend (artifacts/api-server)
@@ -39,7 +40,7 @@ The frontend (sanovim) is served via Vite middleware integrated into the api-ser
 ### Modules
 1. **Generator** — Claude AI gera 3 ideias → usuário escolhe → carrossel completo (slides + legenda + hashtags)
 2. **Trending** — Serper busca trending topics por nicho no Brasil, com cache 1h no DB
-3. **Images** — Runware (FLUX) ou Gemini Flash / Imagen 3 para geração de imagens 1080x1350
+3. **Images** — Runware (FLUX, plano free), Gemini Flash/Nano Banana (essencial+), Imagen 3 (premium). Plano checado no backend via `/api/user/me`
 4. **Video** — FFmpeg processa vídeo para formato Reels 9:16 + Whisper transcrição + download
 
 ### External Services

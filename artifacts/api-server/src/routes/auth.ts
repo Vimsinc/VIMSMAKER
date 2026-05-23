@@ -7,7 +7,7 @@ import {
   LogoutMobileSessionResponse,
 } from "@workspace/api-zod";
 import { db, authUsersTable, usersTable } from "@workspace/db";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import {
   clearSession,
   getOidcConfig,
@@ -104,6 +104,24 @@ router.get("/auth/user", (req: Request, res: Response) => {
       user: req.isAuthenticated() ? req.user : null,
     }),
   );
+});
+
+router.get("/user/me", async (req: Request, res: Response) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ error: "não autenticado" });
+  }
+  try {
+    const rows = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, req.user.email ?? ""))
+      .limit(1);
+    if (rows[0]) return res.json(rows[0]);
+    return res.json({ plan: "free", isAdmin: false });
+  } catch (err) {
+    req.log.error(err, "user/me error");
+    return res.status(500).json({ error: "erro ao buscar perfil" });
+  }
 });
 
 router.get("/login", async (req: Request, res: Response) => {

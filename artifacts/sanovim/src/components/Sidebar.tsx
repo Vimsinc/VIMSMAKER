@@ -7,7 +7,6 @@ import {
   TrendingUp,
   Zap,
   History,
-  Instagram,
   LogOut,
   ShieldCheck,
 } from "lucide-react";
@@ -21,7 +20,6 @@ const navItems = [
   { href: "/video", icon: Video, label: "Vídeo" },
   { href: "/trending", icon: TrendingUp, label: "Trending" },
   { href: "/history", icon: History, label: "Histórico" },
-  { href: "/publish", icon: Instagram, label: "Publicar" },
 ];
 
 export function Sidebar() {

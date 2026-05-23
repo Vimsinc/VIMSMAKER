@@ -9,7 +9,6 @@ import Images from "@/pages/Images";
 import VideoEditor from "@/pages/VideoEditor";
 import Trending from "@/pages/Trending";
 import HistoryPage from "@/pages/HistoryPage";
-import Publish from "@/pages/Publish";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@workspace/replit-auth-web";
@@ -60,7 +59,6 @@ function AppLayout() {
           <Route path="/video" component={VideoEditor} />
           <Route path="/trending" component={Trending} />
           <Route path="/history" component={HistoryPage} />
-          <Route path="/publish" component={Publish} />
           <Route path="/admin" component={Admin} />
           <Route component={NotFound} />
         </Switch>
