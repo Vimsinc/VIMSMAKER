@@ -1,17 +1,31 @@
 import { useState, useRef, useEffect } from "react";
-import { useGenerateImage, useCreateProfessionalCard, useGetImageHistory, getGetImageHistoryQueryKey } from "@workspace/api-client-react";
+import {
+  useGenerateImage,
+  useGenerateImageGemini,
+  useCreateProfessionalCard,
+  useGetImageHistory,
+  getGetImageHistoryQueryKey,
+} from "@workspace/api-client-react";
 import { TopBar } from "@/components/TopBar";
 import { useAccount } from "@/context/AccountContext";
 import { useToast } from "@/hooks/use-toast";
-import { Image, Upload, Sparkles, Download, CreditCard, Clock, Loader2 } from "lucide-react";
+import { Image, Upload, Sparkles, Download, CreditCard, Clock, Loader2, Zap, Star } from "lucide-react";
 
 type Tab = "generate" | "card" | "history";
+type ImageModel = "runware" | "gemini-flash" | "gemini-pro";
+
+const MODEL_OPTIONS: { value: ImageModel; label: string; badge: string; desc: string }[] = [
+  { value: "runware",      label: "Runware",       badge: "Padrão",          desc: "Rápido • FLUX Schnell" },
+  { value: "gemini-flash", label: "Nano Banana",   badge: "Gemini Flash",    desc: "Rápido • Google AI" },
+  { value: "gemini-pro",   label: "Imagen 3",      badge: "Alta Resolução",  desc: "Premium • Google AI" },
+];
 
 export default function Images() {
   const { account, accountInfo } = useAccount();
   const { toast } = useToast();
   const [tab, setTab] = useState<Tab>("generate");
   const [prompt, setPrompt] = useState("");
+  const [model, setModel] = useState<ImageModel>("runware");
   const [cardText, setCardText] = useState("");
   const [cardSubtext, setCardSubtext] = useState("");
   const [cardDescription, setCardDescription] = useState("");
@@ -29,11 +43,14 @@ export default function Images() {
   }, [selectedFile]);
 
   const generateImage = useGenerateImage();
+  const generateGemini = useGenerateImageGemini();
   const createCard = useCreateProfessionalCard();
   const { data: history, isLoading: historyLoading } = useGetImageHistory(
     { account, limit: 20 },
     { query: { enabled: tab === "history", queryKey: getGetImageHistoryQueryKey({ account, limit: 20 }) } }
   );
+
+  const isGenerating = generateImage.isPending || generateGemini.isPending;
 
   const handleGenerateImage = async () => {
     if (!prompt.trim()) {
@@ -41,8 +58,14 @@ export default function Images() {
       return;
     }
     try {
-      const result = await generateImage.mutateAsync({ data: { prompt, account, width: 1080, height: 1350 } });
-      setGeneratedUrl(result.url);
+      if (model === "runware") {
+        const result = await generateImage.mutateAsync({ data: { prompt, account, width: 1080, height: 1350 } });
+        setGeneratedUrl(result.url);
+      } else {
+        const quality = model === "gemini-pro" ? "pro" : "flash";
+        const result = await generateGemini.mutateAsync({ data: { prompt, account, quality } });
+        setGeneratedUrl(result.url);
+      }
       toast({ title: "Imagem gerada!" });
     } catch {
       toast({ title: "Erro ao gerar imagem", variant: "destructive" });
@@ -107,6 +130,36 @@ export default function Images() {
         {tab === "generate" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
+              {/* Model selector */}
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">Modelo de IA</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {MODEL_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      data-testid={`model-${opt.value}`}
+                      onClick={() => setModel(opt.value)}
+                      className={`flex flex-col items-start p-2.5 rounded-lg border text-left transition-all ${
+                        model === opt.value
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1">
+                        {opt.value === "runware" && <Zap className="w-3 h-3 text-yellow-400" />}
+                        {opt.value === "gemini-flash" && <Sparkles className="w-3 h-3 text-blue-400" />}
+                        {opt.value === "gemini-pro" && <Star className="w-3 h-3 text-purple-400" />}
+                        <span className="text-xs font-semibold">{opt.label}</span>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                        model === opt.value ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+                      }`}>{opt.badge}</span>
+                      <span className="text-[10px] text-muted-foreground mt-1">{opt.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <label className="text-sm font-medium text-foreground mb-1.5 block">Descricao da imagem</label>
                 <textarea
@@ -124,17 +177,17 @@ export default function Images() {
                   <p>1080 x 1350 px</p>
                 </div>
                 <div className="bg-card border border-border rounded-lg p-2.5">
-                  <p className="font-medium text-foreground">Estilo</p>
-                  <p>Fotografia medica profissional</p>
+                  <p className="font-medium text-foreground">Motor</p>
+                  <p>{model === "runware" ? "FLUX via Runware" : model === "gemini-pro" ? "Imagen 3 (Google)" : "Gemini Flash (Google)"}</p>
                 </div>
               </div>
               <button
                 data-testid="button-generate-image"
                 onClick={handleGenerateImage}
-                disabled={generateImage.isPending}
+                disabled={isGenerating}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {generateImage.isPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Gerando...</> : <><Sparkles className="w-4 h-4" /> Gerar Imagem</>}
+                {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" /> Gerando...</> : <><Sparkles className="w-4 h-4" /> Gerar Imagem</>}
               </button>
             </div>
 
@@ -144,7 +197,7 @@ export default function Images() {
                 <div className="p-3">
                   <a
                     href={generatedUrl}
-                    download="sanovim-image.webp"
+                    download="sanovim-image.jpg"
                     data-testid="button-download-image"
                     className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
                   >
@@ -263,7 +316,7 @@ export default function Images() {
               <div className="bg-card border border-border rounded-xl overflow-hidden">
                 <img src={generatedUrl} alt="Card profissional" className="w-full object-cover" />
                 <div className="p-3">
-                  <a href={generatedUrl} download="card-profissional.webp" className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors">
+                  <a href={generatedUrl} download="card-profissional.jpg" className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors">
                     <Download className="w-4 h-4" /> Baixar Card
                   </a>
                 </div>

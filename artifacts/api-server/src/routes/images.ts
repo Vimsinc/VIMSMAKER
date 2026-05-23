@@ -13,6 +13,7 @@ import {
   GetImageHistoryResponse,
 } from "@workspace/api-zod";
 import { generateImage, removeBackground, generateBackground } from "../lib/runware";
+import { generateImageGemini } from "../lib/gemini";
 
 const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
@@ -304,6 +305,56 @@ router.post("/images/create-card", upload.single("image"), async (req, res): Pro
   } catch (err) {
     req.log.error({ err }, "Failed to create card");
     res.status(500).json({ error: "Failed to create professional card" });
+  }
+});
+
+// Generate image with Gemini (Nano Banana / Imagen 3)
+router.post("/images/generate-gemini", async (req, res): Promise<void> => {
+  const { prompt, account, quality } = req.body as {
+    prompt?: string; account?: string; quality?: "flash" | "pro";
+  };
+
+  if (!prompt?.trim()) {
+    res.status(400).json({ error: "prompt is required" });
+    return;
+  }
+
+  const fullPrompt = `${prompt}, professional medical photography, high quality, Brazilian healthcare context`;
+
+  try {
+    const { b64, mimeType } = await generateImageGemini(fullPrompt, quality ?? "flash");
+
+    // Save to disk and serve via file endpoint
+    const imgBuffer = Buffer.from(b64, "base64");
+    const ext = mimeType.includes("png") ? "png" : "jpg";
+    const filename = `gemini_${Date.now()}.${ext}`;
+    const filePath = path.join(CARDS_DIR, filename);
+    fs.writeFileSync(filePath, imgBuffer);
+    const imageUrl = `/api/images/card-file/${filename}`;
+
+    const [saved] = await db.insert(imagesHistoryTable).values({
+      account: account || null,
+      type: "generated",
+      url: imageUrl,
+      thumbnailUrl: imageUrl,
+      prompt: fullPrompt,
+      width: 1080,
+      height: 1350,
+    }).returning();
+
+    res.json({
+      id: saved.id,
+      url: imageUrl,
+      thumbnailUrl: imageUrl,
+      width: 1080,
+      height: 1350,
+      account: account || undefined,
+      prompt: fullPrompt,
+      createdAt: saved.createdAt,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Gemini image generation failed");
+    res.status(500).json({ error: "Failed to generate image with Gemini" });
   }
 });
 

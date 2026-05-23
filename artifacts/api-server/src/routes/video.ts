@@ -10,6 +10,7 @@ import {
   GetVideoHistoryResponse,
 } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
+import { processVideoForReels, getVideoDuration, VIDEOS_OUT_DIR } from "../lib/ffmpeg";
 
 const router: IRouter = Router();
 
@@ -49,7 +50,21 @@ async function transcribeAudio(filePath: string): Promise<string | null> {
   }
 }
 
-// Process video
+// Serve processed video files
+router.get("/video/download/:filename", (req, res): void => {
+  const filename = path.basename(req.params.filename);
+  const filePath = path.join(VIDEOS_OUT_DIR, filename);
+  if (!fs.existsSync(filePath)) {
+    res.status(404).json({ error: "Video file not found" });
+    return;
+  }
+  res.setHeader("Content-Type", "video/mp4");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.sendFile(filePath);
+});
+
+// Process video with FFmpeg
 router.post("/video/process", upload.single("video"), async (req, res): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ error: "video file is required" });
@@ -66,17 +81,31 @@ router.post("/video/process", upload.single("video"), async (req, res): Promise<
   const start = parseFloat(startSeconds || "0") || 0;
   const end = endSeconds ? parseFloat(endSeconds) : undefined;
   const shouldAddCaptions = addCaptions === "true" || addCaptions === "1";
+  const shouldConvert = convertToReels !== "false" && convertToReels !== "0";
 
   try {
+    // Step 1: transcribe if captions requested
     let captions: string | null = null;
     if (shouldAddCaptions) {
+      req.log.info("Transcribing audio with Whisper…");
       captions = await transcribeAudio(req.file.path);
+      req.log.info({ captionLength: captions?.length }, "Transcription complete");
     }
 
-    const duration = end ? end - start : 45;
-    const outputFilename = `processed_${Date.now()}.mp4`;
-    const outputUrl = `/api/video/download/${outputFilename}`;
+    // Step 2: process with FFmpeg (trim + reels format + optional caption burn-in)
+    req.log.info({ start, end, shouldConvert, hasCaptions: !!captions }, "Processing video with FFmpeg");
+    const { outputPath, duration } = await processVideoForReels(req.file.path, {
+      startSeconds: start,
+      endSeconds: end,
+      convertToReels: shouldConvert,
+      captions,
+    });
 
+    const outputFilename = path.basename(outputPath);
+    const outputUrl = `/api/video/download/${outputFilename}`;
+    req.log.info({ outputFilename, duration }, "FFmpeg processing complete");
+
+    // Step 3: save to DB
     const [saved] = await db
       .insert(videosHistoryTable)
       .values({

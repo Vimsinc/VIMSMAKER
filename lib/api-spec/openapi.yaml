@@ -200,6 +200,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/GeneratedImage"
 
+  /images/generate-gemini:
+    post:
+      operationId: generateImageGemini
+      tags: [images]
+      summary: Generate image with Google Gemini AI (Nano Banana / Imagen 3)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateGeminiImageBody"
+      responses:
+        "200":
+          description: Generated image URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedImage"
+
   /images/history:
     get:
       operationId: getImageHistory
@@ -712,6 +731,19 @@ components:
         height:
           type: integer
           default: 1350
+      required: [prompt]
+
+    GenerateGeminiImageBody:
+      type: object
+      properties:
+        prompt:
+          type: string
+        account:
+          $ref: "#/components/schemas/AccountName"
+        quality:
+          type: string
+          enum: [flash, pro]
+          default: flash
       required: [prompt]
 
     CreateCardRequest:

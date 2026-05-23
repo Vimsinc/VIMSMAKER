@@ -128,10 +128,26 @@ export interface GenerateImageRequest {
   height?: number;
 }
 
+export type GenerateGeminiImageBodyQuality =
+  (typeof GenerateGeminiImageBodyQuality)[keyof typeof GenerateGeminiImageBodyQuality];
+
+export const GenerateGeminiImageBodyQuality = {
+  flash: "flash",
+  pro: "pro",
+} as const;
+
+export interface GenerateGeminiImageBody {
+  prompt: string;
+  account?: AccountName;
+  quality?: GenerateGeminiImageBodyQuality;
+}
+
 export interface CreateCardRequest {
   account: AccountName;
   text: string;
   subtext?: string;
+  /** Describe changes to background, clothing, or scene while keeping the person */
+  description?: string;
   image?: Blob;
 }
 

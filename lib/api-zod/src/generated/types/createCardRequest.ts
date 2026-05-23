@@ -11,6 +11,7 @@ export interface CreateCardRequest {
   account: AccountName;
   text: string;
   subtext?: string;
+  /** Describe changes to background, clothing, or scene while keeping the person */
   description?: string;
   image?: Blob;
 }

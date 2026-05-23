@@ -15,6 +15,8 @@ export * from "./createCardRequest";
 export * from "./generatedContent";
 export * from "./generatedContentType";
 export * from "./generatedImage";
+export * from "./generateGeminiImageBody";
+export * from "./generateGeminiImageBodyQuality";
 export * from "./generateImageRequest";
 export * from "./generatePostRequest";
 export * from "./generatePostRequestTone";

@@ -22,6 +22,7 @@ import type {
   BestTimeResponse,
   ContentHistoryItem,
   CreateCardRequest,
+  GenerateGeminiImageBody,
   GenerateImageRequest,
   GeneratePostRequest,
   GenerateReelsScriptRequest,
@@ -856,6 +857,92 @@ export const useCreateProfessionalCard = <
   TContext
 > => {
   return useMutation(getCreateProfessionalCardMutationOptions(options));
+};
+
+/**
+ * @summary Generate image with Google Gemini AI (Nano Banana / Imagen 3)
+ */
+export const getGenerateImageGeminiUrl = () => {
+  return `/api/images/generate-gemini`;
+};
+
+export const generateImageGemini = async (
+  generateGeminiImageBody: GenerateGeminiImageBody,
+  options?: RequestInit,
+): Promise<GeneratedImage> => {
+  return customFetch<GeneratedImage>(getGenerateImageGeminiUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(generateGeminiImageBody),
+  });
+};
+
+export const getGenerateImageGeminiMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateImageGemini>>,
+    TError,
+    { data: BodyType<GenerateGeminiImageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateImageGemini>>,
+  TError,
+  { data: BodyType<GenerateGeminiImageBody> },
+  TContext
+> => {
+  const mutationKey = ["generateImageGemini"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateImageGemini>>,
+    { data: BodyType<GenerateGeminiImageBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateImageGemini(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateImageGeminiMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateImageGemini>>
+>;
+export type GenerateImageGeminiMutationBody = BodyType<GenerateGeminiImageBody>;
+export type GenerateImageGeminiMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate image with Google Gemini AI (Nano Banana / Imagen 3)
+ */
+export const useGenerateImageGemini = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateImageGemini>>,
+    TError,
+    { data: BodyType<GenerateGeminiImageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateImageGemini>>,
+  TError,
+  { data: BodyType<GenerateGeminiImageBody> },
+  TContext
+> => {
+  return useMutation(getGenerateImageGeminiMutationOptions(options));
 };
 
 /**

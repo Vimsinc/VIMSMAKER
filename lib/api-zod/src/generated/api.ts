@@ -187,10 +187,40 @@ export const CreateProfessionalCardBody = zod.object({
   account: zod.enum(["drdaniel", "angelica", "loysby"]),
   text: zod.string(),
   subtext: zod.string().optional(),
+  description: zod
+    .string()
+    .optional()
+    .describe(
+      "Describe changes to background, clothing, or scene while keeping the person",
+    ),
   image: zod.instanceof(File).optional(),
 });
 
 export const CreateProfessionalCardResponse = zod.object({
+  id: zod.number(),
+  url: zod.string(),
+  thumbnailUrl: zod.string().optional(),
+  width: zod.number().optional(),
+  height: zod.number().optional(),
+  account: zod.enum(["drdaniel", "angelica", "loysby"]).optional(),
+  prompt: zod.string().optional(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Generate image with Google Gemini AI (Nano Banana / Imagen 3)
+ */
+export const generateImageGeminiBodyQualityDefault = `flash`;
+
+export const GenerateImageGeminiBody = zod.object({
+  prompt: zod.string(),
+  account: zod.enum(["drdaniel", "angelica", "loysby"]).optional(),
+  quality: zod
+    .enum(["flash", "pro"])
+    .default(generateImageGeminiBodyQualityDefault),
+});
+
+export const GenerateImageGeminiResponse = zod.object({
   id: zod.number(),
   url: zod.string(),
   thumbnailUrl: zod.string().optional(),
