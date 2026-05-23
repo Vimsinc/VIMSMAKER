@@ -1,0 +1,373 @@
+# PROMPT PARA REPLIT - VIBEMANAGER (GERADOR DE CONTEÚDO)
+
+Copie este prompt inteiro e insira no Replit para gerar a plataforma VibeManager.
+
+---
+
+## **PROMPT PARA COPIAR E COLAR**
+
+```
+Criar uma plataforma SaaS chamada "VibeManager" exclusivamente para 
+geração de conteúdo viral automático para criadores de conteúdo, 
+com planos diferenciados por recurso e limite de uso.
+
+## RESUMO DO PROJETO
+
+### VISÃO GERAL:
+VibeManager é uma plataforma de geração automática de conteúdo viral
+integrada. Usuários definem um tema/trending topic e recebem:
+- Ideias de posts
+- Carrossel pronto (4-8 slides)
+- Imagens geradas
+- Legendas + hashtags virais
+- Preview responsivo
+
+NOTA: Quiz de biomecânica é PROJETO SEPARADO (vibecheck.app)
+Este projeto: APENAS GERADOR DE CONTEÚDO
+
+### MERCADO-ALVO:
+- Criadores de conteúdo (Instagram, TikTok, YouTube)
+- Personal trainers
+- Profissionais de fitness
+- Influenciadores em Petrolina
+- Agências de marketing digital
+- Pequenas empresas
+
+### MONETIZAÇÃO:
+1. Plano FREE: R$ 0/mês
+   - 5 segundos de vídeos/mês
+   - 10 posts gerados/mês
+   - Qualidade RunWare (base)
+
+2. Plano ESSENCIAL: R$ 49/mês
+   - 30 segundos de vídeos/mês
+   - 50 posts gerados/mês
+   - Qualidade RunWare (base)
+   - +2 imagens com Nano Banana (qualidade melhor)
+   - Trending topics sugeridos diariamente
+
+3. Plano PREMIUM: R$ 199/mês
+   - 120 segundos de vídeos/mês
+   - Ilimitado posts gerados
+   - Qualidade RunWare padrão
+   - +5 imagens com Nano Banana diárias
+   - Opção Gemini Vision (com aviso de custo extra)
+   - Análise de performance
+   - Sugestão de melhor horário para publicar
+   - Integração Instagram API (auto-publish)
+   - Prioridade em suporte
+
+---
+
+## FUNCIONALIDADES PRINCIPAIS
+
+### 1. GERADOR DE CONTEÚDO (Core Feature)
+Fluxo:
+a) Usuario seleciona tema/trending topic (ou pesquisa automática)
+b) Sistema gera 3 ideias diferentes
+c) Usuario escolhe uma ideia
+d) Sistema gera carrossel completo (4-8 slides)
+e) Geração de imagens (conforme plano)
+f) Legendas + hashtags virais
+g) Preview responsivo
+h) Download ou publicar direto (conforme plano)
+
+### 2. PESQUISA DE TRENDING TOPICS
+- Pesquisa automática diária (Serper API)
+- Trending em: Brasil, seu estado, seu nicho
+- Análise de viralidade (Claude)
+- Sugestões automáticas baseado em plano
+- FREE: Sem sugestões (usuario digita)
+- ESSENCIAL: 5 sugestões diárias
+- PREMIUM: 20 sugestões + análise profunda
+
+### 3. GERAÇÃO DE IDEIAS
+- OpenAI gera 3 variações de ideia
+- Baseado em: tema + nicho + trending topic
+- Cada ideia com estrutura definida
+- Sugestão de público-alvo
+
+### 4. CARROSSEL AUTOMÁTICO
+- Claude gera estrutura (4-8 slides)
+- Cada slide: título, descrição, CTA
+- Imagens automáticas (RunWare ou Nano Banana)
+- Legendas otimizadas para viral
+- 10 hashtags trending
+
+### 5. GERAÇÃO DE IMAGENS
+
+#### FREE & ESSENCIAL (Padrão):
+- RunWare: $0,10/imagem
+- Qualidade: Boa para social media
+- Tempo: 10-30s
+
+#### ESSENCIAL (+2 Nano Banana):
+- Nano Banana: $0,02/imagem
+- Qualidade: Mais detalhado
+- Usa em: Slides principais
+- Tempo: 15-40s
+
+#### PREMIUM (Opção Gemini):
+- Gemini Vision: $0,005/imagem
+- AVISO OBRIGATÓRIO: "Usar Gemini? Custará $0,25 extra"
+- Qualidade: Premium
+- Usuario confirma antes de usar
+
+### 6. OTIMIZAÇÃO DE LEGENDAS
+- OpenAI gera legendas
+- Otimizadas para algoritmo
+- Com hooks no início
+- CTA clara no final
+- Emojis estratégicos
+- Quebras de linha corretas
+
+### 7. HASHTAGS VIRAIS
+- Claude gera 10 hashtags
+- Baseado em trending + nicho
+- Mix: populares + nichos
+- Testadas em redes
+
+### 8. PREVIEW RESPONSIVO
+- Desktop (1920x1080)
+- Tablet (768x1024)
+- Mobile (375x667)
+- Ver como fica em: Instagram, TikTok, Facebook
+
+### 9. DASHBOARD & HISTÓRICO
+- Histórico de gerações
+- Estatísticas: quantos posts gerou
+- Créditos/limites restantes
+- Plano ativo
+- Botão upgrade
+
+### 10. INTEGRAÇÃO INSTAGRAM (PREMIUM)
+- Auto-publish carrossel
+- Agendar para melhor horário
+- Estatísticas de performance
+- Ajustar conforme resultado
+
+---
+
+## ARQUITETURA TÉCNICA
+
+### STACK:
+- Frontend: React + Tailwind CSS + ShadcnUI
+- Backend: Express.js + Node.js
+- Database: Supabase (PostgreSQL)
+- Autenticação: Supabase Auth + Google OAuth
+- Pagamento: Stripe (crédito)
+- APIs Externas:
+  * RunWare (imagens padrão - $0,10)
+  * Nano Banana (imagens melhoradas - $0,02)
+  * Gemini Vision (premium - $0,005, COM AVISO)
+  * OpenAI (processamento de texto)
+  * Anthropic/Claude (análise viral)
+  * Serper (pesquisa trending topics)
+  * Instagram Graph API (publish - PREMIUM)
+
+### ESTRUTURA DE PASTAS:
+```
+replit-project/
+├── .env
+├── server.js
+├── package.json
+├── src/
+│   ├── components/
+│   │   ├── ContentGenerator.jsx (MAIN)
+│   │   ├── IdeaSelector.jsx
+│   │   ├── CarouselPreview.jsx
+│   │   ├── ImageGenerator.jsx
+│   │   ├── LegendGenerator.jsx
+│   │   ├── HashtagGenerator.jsx
+│   │   ├── Dashboard.jsx
+│   │   └── CreditsModal.jsx
+│   ├── pages/
+│   │   ├── Home.jsx
+│   │   ├── Generator.jsx
+│   │   ├── Dashboard.jsx
+│   │   └── Pricing.jsx
+│   └── App.jsx
+└── routes/
+    ├── auth.js
+    ├── content.js
+    ├── trending.js
+    ├── images.js
+    ├── dashboard.js
+    └── payments.js
+```
+
+---
+
+## VARIÁVEIS DE AMBIENTE (.env)
+
+```
+# SUPABASE
+SUPABASE_URL=sua_url_supabase
+SUPABASE_KEY=sua_chave_supabase
+
+# STRIPE
+STRIPE_PUBLIC_KEY=pk_live_...
+STRIPE_SECRET_KEY=sk_live_...
+
+# RUNWARE (Imagens - Padrão)
+RUNWARE_API_KEY=sua_chave_runware
+RUNWARE_MODEL=runware/stable-diffusion-v3-medium
+RUNWARE_COST=0.10
+
+# NANO BANANA (Imagens - Qualidade)
+NANO_BANANA_API_KEY=sua_chave_nano_banana
+NANO_BANANA_MODEL=nano-banana-image-generation
+NANO_BANANA_COST=0.02
+
+# GEMINI (PREMIUM - COM AVISO)
+GEMINI_API_KEY=sua_chave_gemini
+GEMINI_MODEL=gemini-2.0-flash-vision
+GEMINI_COST=0.005
+
+# OpenAI
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4-turbo
+
+# Claude
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-3-5-sonnet
+
+# SERPER
+SERPER_API_KEY=sua_chave_serper
+
+# Instagram (PREMIUM)
+INSTAGRAM_ACCESS_TOKEN=seu_token
+INSTAGRAM_BUSINESS_ACCOUNT_ID=seu_id
+
+# LIMITES
+FREE_VIDEO_SECONDS=5
+FREE_POSTS_LIMIT=10
+
+ESSENCIAL_VIDEO_SECONDS=30
+ESSENCIAL_POSTS_LIMIT=50
+ESSENCIAL_IMAGES_NANO=2
+
+PREMIUM_VIDEO_SECONDS=120
+PREMIUM_POSTS_LIMIT=-1
+PREMIUM_IMAGES_NANO=5
+PREMIUM_GEMINI_ALLOWED=true
+```
+
+---
+
+## FLUXO PRINCIPAL DE USUÁRIO
+
+### FLUXO 1: GERAR CONTEÚDO
+```
+1. Usuario acessa /generate
+2. Escolhe: digita tema OU clica trending sugerido
+3. Sistema gera 3 ideias (OpenAI)
+4. Usuario escolhe 1 ideia
+5. Carrossel gerado:
+   - Estrutura (Claude)
+   - Imagens (RunWare ou Nano Banana)
+   - Legenda (OpenAI)
+   - Hashtags (Claude)
+6. Preview responsivo
+7. Opções:
+   - Salvar
+   - Download
+   - Publicar direto (PREMIUM)
+   - Qualidade Premium (AVISO)
+```
+
+### FLUXO 2: QUALIDADE PREMIUM (Gemini)
+```
+Usuario clica: "Usar Gemini Vision"
+    ↓
+AVISO: "Custo: $0,25. Confirma?"
+    ↓
+Se sim: Regenera com Gemini + deduz custo
+Se não: Mantém RunWare
+```
+
+---
+
+## LIMITES POR PLANO
+
+### FREE
+- 5 segundos vídeos/mês
+- 10 posts/mês
+- Só RunWare
+- Sem trending suggestions
+- Sem Instagram publish
+
+### ESSENCIAL
+- 30 segundos vídeos/mês
+- 50 posts/mês
+- RunWare + 2 Nano Banana/dia
+- 5 trending suggestions
+- Sem Instagram publish
+
+### PREMIUM
+- 120 segundos vídeos/mês
+- Ilimitado posts
+- RunWare + 5 Nano Banana/dia
+- 20 trending suggestions
+- Instagram publish automático
+- Gemini Vision (com aviso)
+- Analytics
+- Melhor horário para publicar
+
+---
+
+## ENDPOINTS PRINCIPAIS
+
+```
+POST /api/content/generate-ideas
+POST /api/content/generate-carousel
+POST /api/content/regenerate-quality (Gemini com aviso)
+
+POST /api/images/generate-runware
+POST /api/images/generate-nano-banana
+POST /api/images/generate-gemini (AVISO antes)
+
+POST /api/text/generate-legends
+POST /api/text/generate-hashtags
+
+GET /api/trending/suggestions
+POST /api/trending/search
+
+GET /api/dashboard/stats
+GET /api/dashboard/credits
+
+POST /api/payments/create-checkout
+POST /api/instagram/publish (PREMIUM)
+```
+
+---
+
+## COMPONENTES REACT
+
+- HomePage.jsx (hero + pricing)
+- ContentGenerator.jsx (main app)
+- IdeaSelector.jsx (3 ideias)
+- CarouselPreview.jsx (preview responsivo)
+- Dashboard.jsx (histórico)
+- PricingTable.jsx (3 planos)
+
+---
+
+## REGRAS DE CUSTO (CRÍTICO!)
+
+✅ SEMPRE avisar antes de usar Gemini
+✅ SEMPRE logar cada ação paga
+✅ SEMPRE mostrar saldo em tempo real
+✅ NUNCA usar modelos caros em silêncio
+
+❌ NUNCA expor Nano Banana diretamente
+❌ NUNCA deixar usuario sem saber custo
+
+---
+
+Coloque este prompt no Sider do Replit e deixe gerar!
+```
+
+---
+
+**FIM DO PROMPT**
