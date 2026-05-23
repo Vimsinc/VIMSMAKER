@@ -9,8 +9,10 @@ import {
   History,
   Instagram,
   LogOut,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@workspace/replit-auth-web";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 const navItems = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -25,6 +27,7 @@ const navItems = [
 export function Sidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const isAdmin = useIsAdmin();
 
   return (
     <aside className="w-16 md:w-56 flex flex-col h-screen bg-sidebar border-r border-sidebar-border shrink-0 fixed left-0 top-0 z-40">
@@ -56,6 +59,21 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {isAdmin && (
+          <Link href="/admin">
+            <div
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer mt-2 border ${
+                location.startsWith("/admin")
+                  ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                  : "text-amber-500/60 hover:text-amber-400 border-amber-500/20 hover:bg-amber-500/10 border-transparent"
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              <span className="hidden md:block text-sm font-medium">Admin</span>
+            </div>
+          </Link>
+        )}
       </nav>
 
       <div className="px-3 py-3 border-t border-sidebar-border space-y-2">

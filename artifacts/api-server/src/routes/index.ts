@@ -6,6 +6,7 @@ import generateRouter from "./generate";
 import imagesRouter from "./images";
 import videoRouter from "./video";
 import instagramRouter from "./instagram";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(generateRouter);
 router.use(imagesRouter);
 router.use(videoRouter);
 router.use(instagramRouter);
+router.use("/admin", adminRouter);
 
 export default router;

@@ -6,7 +6,8 @@ import {
   ExchangeMobileAuthorizationCodeResponse,
   LogoutMobileSessionResponse,
 } from "@workspace/api-zod";
-import { db, authUsersTable } from "@workspace/db";
+import { db, authUsersTable, usersTable } from "@workspace/db";
+import { sql } from "drizzle-orm";
 import {
   clearSession,
   getOidcConfig,
@@ -73,12 +74,27 @@ async function upsertUser(claims: Record<string, unknown>) {
     .values(userData)
     .onConflictDoUpdate({
       target: authUsersTable.id,
-      set: {
-        ...userData,
-        updatedAt: new Date(),
-      },
+      set: { ...userData, updatedAt: new Date() },
     })
     .returning();
+
+  if (user.email) {
+    const displayName =
+      [userData.firstName, userData.lastName].filter(Boolean).join(" ") ||
+      user.email.split("@")[0];
+    await db
+      .insert(usersTable)
+      .values({
+        email: user.email,
+        name: displayName,
+        plan: "free",
+      })
+      .onConflictDoUpdate({
+        target: usersTable.email,
+        set: { name: sql`EXCLUDED.name` },
+      });
+  }
+
   return user;
 }
 
