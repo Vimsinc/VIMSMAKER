@@ -7,6 +7,7 @@ import imagesRouter from "./images";
 import videoRouter from "./video";
 import instagramRouter from "./instagram";
 import adminRouter from "./admin";
+import experienceRouter from "./experience";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(imagesRouter);
 router.use(videoRouter);
 router.use(instagramRouter);
 router.use("/admin", adminRouter);
+router.use(experienceRouter);
 
 export default router;

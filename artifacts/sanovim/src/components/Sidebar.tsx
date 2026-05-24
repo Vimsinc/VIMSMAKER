@@ -5,6 +5,7 @@ import {
   Image,
   Video,
   TrendingUp,
+  Wand2,
   Zap,
   History,
   LogOut,
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/generator", icon: Sparkles, label: "Gerar" },
   { href: "/images", icon: Image, label: "Imagens" },
   { href: "/video", icon: Video, label: "Vídeo" },
+  { href: "/experience", icon: Wand2, label: "Experience" },
   { href: "/trending", icon: TrendingUp, label: "Trending" },
   { href: "/history", icon: History, label: "Histórico" },
 ];
